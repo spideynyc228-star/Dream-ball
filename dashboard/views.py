@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from events.models import Event
@@ -68,3 +69,10 @@ def notifications(request):
         return redirect("moderation:dashboard")
     request.user.notifications.filter(is_read=False).update(is_read=True)
     return render(request, "dashboard/notifications.html", {"notifications": request.user.notifications.order_by("-created_at")})
+
+
+@login_required
+@require_POST
+def mark_notifications_read(request):
+    request.user.notifications.filter(is_read=False).update(is_read=True)
+    return redirect(request.META.get("HTTP_REFERER") or "dashboard:home")

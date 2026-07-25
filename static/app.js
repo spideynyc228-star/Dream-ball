@@ -72,4 +72,27 @@ document.addEventListener("DOMContentLoaded", () => {
       history.replaceState(null, "", link.getAttribute("href"));
     });
   });
+
+  document.querySelectorAll("[data-notification-menu]").forEach((menu) => {
+    const toggle = menu.querySelector("[data-notification-toggle]");
+    const popover = menu.querySelector("[data-notification-popover]");
+    const close = () => {
+      popover.hidden = true;
+      toggle.setAttribute("aria-expanded", "false");
+    };
+    toggle.addEventListener("click", () => {
+      const isOpen = !popover.hidden;
+      if (isOpen) close();
+      else {
+        popover.hidden = false;
+        toggle.setAttribute("aria-expanded", "true");
+      }
+    });
+    document.addEventListener("click", (event) => {
+      if (!menu.contains(event.target)) close();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") close();
+    });
+  });
 });
