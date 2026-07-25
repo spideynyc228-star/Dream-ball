@@ -511,3 +511,8 @@ html { background:#f7f9fb; } body { background:linear-gradient(135deg,#fff 0%,#f
 .profile-tabs a:hover,.profile-tabs a.active { color:#34546e; border-color:#b9ccdb; background:#edf4f8; }
 .profile-tabs b { display:grid; min-width:18px; height:18px; place-items:center; padding:0 4px; border-radius:50%; color:#fff; background:#748fa5; font-size:9px; }
 @media (max-width:680px) { .admin-section-heading { display:grid; gap:12px; align-items:start; }.profile-tabs { width:100%; }.profile-tabs a { flex:1; justify-content:space-between; } }
+
+.moderation-filters { grid-template-columns:minmax(240px,1fr) minmax(180px,.62fr) auto; }
+.moderation-filters input[type="hidden"] { display:none; }
+@media (max-width:900px) { .moderation-filters { grid-template-columns:1fr auto; }.moderation-filters input:not([type="hidden"]) { grid-column:1 / -1; } }
+@media (max-width:600px) { .moderation-filters { grid-template-columns:1fr; }.moderation-filters input:not([type="hidden"]) { grid-column:auto; } }

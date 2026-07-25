@@ -32,6 +32,8 @@ def dashboard(request):
     return render(request,"moderation/dashboard.html",{
         "profiles": profiles.order_by(sort), "selected_status": status, "student_search": search,
         "pending":Profile.objects.filter(status="pending").count(),
+        "approved_profiles_count": Profile.objects.filter(status=Profile.Status.APPROVED).count(),
+        "rejected_profiles_count": Profile.objects.filter(status=Profile.Status.REJECTED).count(),
         "all_profiles_count": Profile.objects.count(),
         "reports": reports,
         "approved_count":Profile.objects.filter(status="approved").count(),
