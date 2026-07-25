@@ -5,6 +5,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const preview = document.querySelector("#photo-preview");
     const placeholder = document.querySelector("#photo-placeholder");
     const sliders = document.querySelector("[data-photo-sliders]");
+    const cropModal = document.querySelector("[data-avatar-crop-modal]");
+    const cropStage = document.querySelector("[data-avatar-crop-stage]");
+    const cropPreview = document.querySelector("[data-avatar-crop-preview]");
+    const cropZoom = document.querySelector("[data-avatar-crop-zoom]");
     const controls = {
       x: document.querySelector("[data-photo-x]"),
       y: document.querySelector("[data-photo-y]"),
@@ -22,43 +26,56 @@ document.addEventListener("DOMContentLoaded", () => {
       if (controls.hiddenY) controls.hiddenY.value = controls.y.value;
       if (controls.hiddenScale) controls.hiddenScale.value = controls.scale.value;
     };
-    [controls.x, controls.y, controls.scale].forEach((control) => control?.addEventListener("input", updatePhotoFrame));
-    let dragState = null;
-    let didDragPhoto = false;
-    preview?.addEventListener("pointerdown", (event) => {
-      if (preview.hidden || !controls.x || !controls.y) return;
-      dragState = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
-      didDragPhoto = false;
-      preview.setPointerCapture(event.pointerId);
-      preview.classList.add("is-dragging");
+    const updateCropFrame = () => {
+      if (!cropPreview || !controls.x || !controls.y || !controls.scale) return;
+      cropPreview.style.setProperty("--photo-x", `${controls.x.value}%`);
+      cropPreview.style.setProperty("--photo-y", `${controls.y.value}%`);
+      cropPreview.style.setProperty("--photo-scale", controls.scale.value);
+    };
+    controls.scale?.addEventListener("input", () => { updatePhotoFrame(); updateCropFrame(); });
+    cropZoom?.addEventListener("input", () => {
+      if (controls.scale) controls.scale.value = cropZoom.value;
+      updatePhotoFrame();
+      updateCropFrame();
     });
-    preview?.addEventListener("pointermove", (event) => {
+    let dragState = null;
+    cropStage?.addEventListener("pointerdown", (event) => {
+      if (!cropPreview?.src || !controls.x || !controls.y) return;
+      dragState = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+      cropStage.setPointerCapture(event.pointerId);
+      cropStage.classList.add("is-dragging");
+      event.preventDefault();
+    });
+    cropStage?.addEventListener("pointermove", (event) => {
       if (!dragState || event.pointerId !== dragState.pointerId) return;
-      const bounds = preview.getBoundingClientRect();
-      const moveX = ((event.clientX - dragState.x) / bounds.width) * 100;
-      const moveY = ((event.clientY - dragState.y) / bounds.height) * 100;
-      if (Math.abs(moveX) > 0.3 || Math.abs(moveY) > 0.3) didDragPhoto = true;
-      const scale = Math.max(1, Number(controls.scale?.value || 100) / 100);
+      const bounds = cropStage.getBoundingClientRect();
       const clamp = (value) => Math.max(0, Math.min(100, value));
-      controls.x.value = clamp(Number(controls.x.value) - (moveX / scale));
-      controls.y.value = clamp(Number(controls.y.value) - (moveY / scale));
+      const scale = Math.max(1, Number(controls.scale?.value || 100) / 100);
+      controls.x.value = clamp(Number(controls.x.value) - ((event.clientX - dragState.x) / bounds.width) * 100 / scale);
+      controls.y.value = clamp(Number(controls.y.value) - ((event.clientY - dragState.y) / bounds.height) * 100 / scale);
       dragState.x = event.clientX;
       dragState.y = event.clientY;
       updatePhotoFrame();
+      updateCropFrame();
     });
-    const stopPhotoDrag = (event) => {
+    const stopCropDrag = (event) => {
       if (!dragState || event.pointerId !== dragState.pointerId) return;
-      if (preview?.hasPointerCapture(event.pointerId)) preview.releasePointerCapture(event.pointerId);
-      preview?.classList.remove("is-dragging");
+      if (cropStage?.hasPointerCapture(event.pointerId)) cropStage.releasePointerCapture(event.pointerId);
+      cropStage?.classList.remove("is-dragging");
       dragState = null;
     };
-    preview?.addEventListener("pointerup", stopPhotoDrag);
-    preview?.addEventListener("pointercancel", stopPhotoDrag);
-    preview?.addEventListener("click", (event) => {
-      if (!didDragPhoto) return;
-      event.preventDefault();
-      didDragPhoto = false;
-    });
+    cropStage?.addEventListener("pointerup", stopCropDrag);
+    cropStage?.addEventListener("pointercancel", stopCropDrag);
+    const openCropModal = () => {
+      if (!cropModal || !cropPreview || !preview?.src) return;
+      cropPreview.src = preview.src;
+      if (cropZoom && controls.scale) cropZoom.value = controls.scale.value;
+      updateCropFrame();
+      cropModal.hidden = false;
+      cropStage?.focus();
+    };
+    cropModal?.querySelector("[data-avatar-crop-done]")?.addEventListener("click", () => { cropModal.hidden = true; });
+    cropModal?.querySelector("[data-avatar-crop-cancel]")?.addEventListener("click", () => { cropModal.hidden = true; });
     updatePhotoFrame();
     photoInput.addEventListener("change", () => {
       const file = photoInput.files?.[0];
@@ -73,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (sliders) sliders.hidden = false;
       if (editor) editor.classList.add("has-photo");
       updatePhotoFrame();
+      openCropModal();
     });
   }
 

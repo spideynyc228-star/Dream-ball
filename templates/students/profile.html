@@ -56,4 +56,17 @@
     </form>
   </section>
 </main>
+<div class="avatar-crop-modal" data-avatar-crop-modal hidden>
+  <div class="avatar-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="avatar-crop-title">
+    <p class="eyebrow">PHOTO FRAMING</p>
+    <h2 id="avatar-crop-title">Position your photo</h2>
+    <p>Drag your photo beneath the dotted square. Only the area inside the frame will be shown.</p>
+    <div class="avatar-crop-stage" data-avatar-crop-stage tabindex="0">
+      <img data-avatar-crop-preview alt="Crop preview">
+      <span class="avatar-crop-guide" aria-hidden="true"></span>
+    </div>
+    <label class="avatar-crop-zoom">Zoom <input type="range" min="100" max="160" value="100" data-avatar-crop-zoom></label>
+    <div class="avatar-crop-actions"><button type="button" class="button button-secondary" data-avatar-crop-cancel>Cancel</button><button type="button" class="button button-primary" data-avatar-crop-done>Done</button></div>
+  </div>
+</div>
 {% endblock %}
