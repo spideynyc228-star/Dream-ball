@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_time
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from notifications.models import Notification
 from .forms import ProfileForm
@@ -21,6 +22,7 @@ def approved_required(view):
 
 
 @login_required
+@ensure_csrf_cookie
 def profile(request):
     existing_profile = getattr(request.user, "profile", None)
     if request.user.role == "admin":

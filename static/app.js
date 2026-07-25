@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionStorage.removeItem(storageKey);
       }
     }
-    form.addEventListener("submit", () => {
+    const saveRecoveryDraft = () => {
       const values = {};
       const fields = Array.from(form.elements).filter((field) => {
         if (!field.name || field.name === "csrfmiddlewaretoken" || field.type === "password" || field.type === "file") return;
@@ -217,6 +217,59 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
       sessionStorage.setItem(storageKey, JSON.stringify({ savedAt: Date.now(), values }));
+    };
+    form.addEventListener("submit", async (event) => {
+      saveRecoveryDraft();
+      if (form.dataset.formRecovery !== "profile") return;
+
+      // A profile photo cannot be restored from browser storage.  When a CSRF
+      // token becomes stale, refresh it in the background and resend the same
+      // FormData so the user does not have to choose the image again.
+      event.preventDefault();
+      const submitButton = form.querySelector('[type="submit"]');
+      const originalLabel = submitButton?.innerHTML;
+      const payload = new FormData(form);
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "Saving…";
+      }
+      try {
+        const sendProfile = () => fetch(form.action || window.location.href, {
+          method: "POST",
+          body: payload,
+          credentials: "same-origin",
+          headers: { "X-Requested-With": "XMLHttpRequest" },
+        });
+        let response = await sendProfile();
+        const responseUrl = new URL(response.url, window.location.href);
+        if (responseUrl.searchParams.get("_form_refresh") === "1") {
+          const refreshedPage = new DOMParser().parseFromString(await response.text(), "text/html");
+          const freshToken = refreshedPage.querySelector('[name="csrfmiddlewaretoken"]')?.value;
+          if (!freshToken) throw new Error("Could not refresh the form security token.");
+          payload.set("csrfmiddlewaretoken", freshToken);
+          const visibleToken = form.querySelector('[name="csrfmiddlewaretoken"]');
+          if (visibleToken) visibleToken.value = freshToken;
+          response = await sendProfile();
+        }
+        sessionStorage.removeItem(storageKey);
+        if (response.redirected) {
+          window.location.assign(response.url);
+          return;
+        }
+        document.open();
+        document.write(await response.text());
+        document.close();
+      } catch (_error) {
+        const message = document.createElement("p");
+        message.className = "error-text form-save-error";
+        message.textContent = "Your profile could not be saved. Please try again — your selected photo is still here.";
+        form.querySelector(".form-save-error")?.remove();
+        submitButton?.before(message);
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.innerHTML = originalLabel;
+        }
+      }
     });
   });
 
