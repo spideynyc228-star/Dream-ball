@@ -58,7 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  document.querySelectorAll('.dream-landing a[href^="#"]').forEach((link) => {
+  // The landing header sits outside .dream-landing, so bind to every anchor link.
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener("click", (event) => {
       const target = document.querySelector(link.getAttribute("href"));
       const heading = target?.querySelector("h2");
