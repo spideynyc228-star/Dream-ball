@@ -25,20 +25,14 @@ def dashboard(request):
         profiles = profiles.filter(status=status)
     if search:
         profiles = profiles.filter(Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search) | Q(user__username__icontains=search))
-    report_search = request.GET.get("report_q", "").strip()
-    reports = Report.objects.filter(reviewed=False).select_related("profile__user", "reporter")
-    if report_search:
-        reports = reports.filter(Q(profile__user__first_name__icontains=report_search) | Q(profile__user__last_name__icontains=report_search) | Q(details__icontains=report_search))
-    code_search = request.GET.get("code_q", "").strip()
-    codes = InvitationCode.objects.filter(is_active=True, used_by__isnull=True).order_by("-created_at")
-    if code_search:
-        codes = codes.filter(code__icontains=code_search)
+    reports = Report.objects.select_related("profile__user", "reporter").order_by("-created_at")
+    codes = InvitationCode.objects.select_related("used_by").order_by("-created_at")
     return render(request,"moderation/dashboard.html",{
         "profiles": profiles.order_by(sort), "selected_status": status, "student_search": search,
         "pending":Profile.objects.filter(status="pending").count(),
         "reports": reports,
         "approved_count":Profile.objects.filter(status="approved").count(),
-        "codes_count":codes.count(), "codes":codes[:20], "code_search":code_search,
+        "codes_count":InvitationCode.objects.filter(is_active=True, used_by__isnull=True).count(), "codes":codes[:30],
         "partnerships":Partnership.objects.select_related("student_one", "student_two").order_by("-created_at")[:8],
         "events":Event.objects.order_by("date")[:4],
     })
@@ -86,4 +80,33 @@ def create_invitation(request):
         else:
             InvitationCode.objects.create(code=code, role=role)
             messages.success(request, f"Invitation code {code} is ready to share.")
+    return redirect("moderation:dashboard")
+
+
+@admin_required
+def update_invitation(request, pk):
+    if request.method == "POST":
+        invitation = get_object_or_404(InvitationCode, pk=pk)
+        code = request.POST.get("code", "").strip().upper()
+        role = request.POST.get("role", invitation.role)
+        if not code:
+            messages.error(request, "Invitation code cannot be empty.")
+        elif InvitationCode.objects.exclude(pk=invitation.pk).filter(code=code).exists():
+            messages.error(request, "That invitation code already exists.")
+        elif role not in {"student", "moderator", "teacher", "admin"}:
+            messages.error(request, "Choose a valid account role.")
+        else:
+            invitation.code = code
+            invitation.role = role
+            invitation.save(update_fields=["code", "role"])
+            messages.success(request, "Invitation code updated.")
+    return redirect("moderation:dashboard")
+
+
+@admin_required
+def delete_invitation(request, pk):
+    if request.method == "POST":
+        invitation = get_object_or_404(InvitationCode, pk=pk)
+        invitation.delete()
+        messages.success(request, "Invitation code deleted. Existing accounts stay active.")
     return redirect("moderation:dashboard")
