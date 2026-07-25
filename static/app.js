@@ -181,8 +181,16 @@ document.addEventListener("DOMContentLoaded", () => {
           Object.entries(saved.values).forEach(([name, value]) => {
             const field = form.elements.namedItem(name);
             if (!field || field.type === "password" || field.type === "file") return;
-            if (field.type === "checkbox") field.checked = Boolean(value);
-            else field.value = value;
+            if (field.length && !field.type && typeof field !== "string") {
+              const selected = Array.isArray(value) ? value : [];
+              Array.from(field).forEach((choice) => {
+                if (choice.type === "checkbox") choice.checked = selected.includes(choice.value);
+              });
+            } else if (field.type === "checkbox") {
+              field.checked = Boolean(value);
+            } else {
+              field.value = value;
+            }
           });
         }
         sessionStorage.removeItem(storageKey);
@@ -192,9 +200,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     form.addEventListener("submit", () => {
       const values = {};
-      Array.from(form.elements).forEach((field) => {
+      const fields = Array.from(form.elements).filter((field) => {
         if (!field.name || field.name === "csrfmiddlewaretoken" || field.type === "password" || field.type === "file") return;
-        values[field.name] = field.type === "checkbox" ? field.checked : field.value;
+        return true;
+      });
+      fields.forEach((field) => {
+        if (field.type !== "checkbox") {
+          values[field.name] = field.value;
+          return;
+        }
+        const matchingCheckboxes = fields.filter((candidate) => candidate.name === field.name && candidate.type === "checkbox");
+        if (matchingCheckboxes.length === 1) {
+          values[field.name] = field.checked;
+        } else {
+          values[field.name] = matchingCheckboxes.filter((candidate) => candidate.checked).map((candidate) => candidate.value);
+        }
       });
       sessionStorage.setItem(storageKey, JSON.stringify({ savedAt: Date.now(), values }));
     });

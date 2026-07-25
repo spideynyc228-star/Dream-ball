@@ -1,5 +1,46 @@
 {% extends "base.html" %}
 {% block body_class %}form-page{% endblock %}
 {% block content %}
-<main class="form-shell"><section class="profile-form-card"><div class="form-heading"><div><p class="eyebrow">{% if has_saved_profile %}PROFILE SETTINGS{% else %}YOUR STUDENT PROFILE{% endif %}</p><h1>{% if has_saved_profile %}Your saved profile.{% else %}Introduce yourself.{% endif %}</h1><p class="muted">{% if has_saved_profile %}Your submitted answers are saved below. Change only what you need; any update will be reviewed again before it becomes visible.{% else %}Complete these details once so the school team can review your profile.{% endif %}</p></div><div class="privacy-badge"><b>● {{ profile.get_status_display }}</b><br>{% if has_saved_profile %}Saved answers stay here{% else %}Complete required details{% endif %}</div></div>{% if profile.moderation_note %}<p class="moderation-warning">Moderator note: {{ profile.moderation_note }}</p>{% endif %}<form class="stack-form" method="post" enctype="multipart/form-data" data-form-recovery="profile">{% csrf_token %}<div class="form-grid">{% for field in form %}{% if field.name != 'bio' and field.name != 'photo' and field.name != 'agreed_to_rules' %}<label>{{ field.label }}{{ field }}{% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>{% endif %}{% endfor %}</div>{% for field in form %}{% if field.name == 'bio' %}<label>{{ field.label }}{{ field }}{% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>{% elif field.name == 'photo' %}<label>Optional profile photo{{ field }}<small class="field-help">A clear, appropriate photo helps classmates recognise you.</small></label>{% elif field.name == 'agreed_to_rules' %}<label class="agreement">{{ field }}<span>I agree to the <a href="{% url 'safety:index' %}" target="_blank" rel="noopener">site policy and community rules</a>, privacy expectations and respectful event conduct.</span>{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>{% endif %}{% endfor %}<button class="button button-primary" type="submit">{% if has_saved_profile %}Save changes and resubmit{% else %}Submit for moderation{% endif %} <span>→</span></button></form></section></main>
+<main class="form-shell">
+  <section class="profile-form-card">
+    <div class="form-heading">
+      <div>
+        <p class="eyebrow">{% if has_saved_profile %}PROFILE SETTINGS{% else %}YOUR STUDENT PROFILE{% endif %}</p>
+        <h1>{% if has_saved_profile %}Your saved profile.{% else %}Introduce yourself.{% endif %}</h1>
+        <p class="muted">{% if has_saved_profile %}Your submitted answers are saved below. Change only what you need; any update will be reviewed again before it becomes visible.{% else %}Complete these details once so the school team can review your profile.{% endif %}</p>
+      </div>
+      <div class="privacy-badge"><b>● {{ profile.get_status_display }}</b><br>{% if has_saved_profile %}Saved answers stay here{% else %}Complete required details{% endif %}</div>
+    </div>
+    {% if profile.moderation_note %}<p class="moderation-warning">Moderator note: {{ profile.moderation_note }}</p>{% endif %}
+    <form class="stack-form" method="post" enctype="multipart/form-data" data-form-recovery="profile">
+      {% csrf_token %}
+      <div class="form-grid">
+        {% for field in form %}
+          {% if field.name != 'bio' and field.name != 'photo' and field.name != 'agreed_to_rules' %}
+            {% if field.name == 'preferred_rehearsal_time' %}
+              <fieldset class="rehearsal-time-field">
+                <legend>{{ field.label }}</legend>
+                {{ field }}
+                {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}
+              </fieldset>
+            {% else %}
+              <label>{{ field.label }}{{ field }}{% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% for field in form %}
+        {% if field.name == 'bio' %}
+          <label>{{ field.label }}{{ field }}{% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
+        {% elif field.name == 'photo' %}
+          <label>Optional profile photo{{ field }}<small class="field-help">A clear, appropriate photo helps classmates recognise you.</small></label>
+        {% elif field.name == 'agreed_to_rules' %}
+          <label class="agreement">{{ field }}<span>I agree to the <a href="{% url 'safety:index' %}" target="_blank" rel="noopener">site policy and community rules</a>, privacy expectations and respectful event conduct.</span>{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
+        {% endif %}
+      {% endfor %}
+      <button class="button button-primary" type="submit">{% if has_saved_profile %}Save changes and resubmit{% else %}Submit for moderation{% endif %} <span>→</span></button>
+    </form>
+  </section>
+</main>
 {% endblock %}
