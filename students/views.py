@@ -34,9 +34,11 @@ def profile(request):
     if profile.status == Profile.Status.APPROVED and not profile.is_complete:
         profile.status = Profile.Status.PENDING
         profile.save(update_fields=["status"])
-    form = ProfileForm(request.POST or None, request.FILES or None, instance=profile)
+    form = ProfileForm(request.POST or None, request.FILES or None, instance=profile, user=request.user)
     if request.method == "POST" and form.is_valid():
         profile = form.save(commit=False)
+        request.user.username = form.cleaned_data["nickname"]
+        request.user.save(update_fields=["username"])
         profile.status = Profile.Status.PENDING
         profile.moderation_note = ""
         profile.save()

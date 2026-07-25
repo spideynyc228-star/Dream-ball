@@ -1,5 +1,10 @@
 from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.validators import UnicodeUsernameValidator
+
 from .models import Profile
+
+
 class ProfileForm(forms.ModelForm):
     REHEARSAL_TIME_CHOICES = [
         ("After school", "After school"),
@@ -13,6 +18,13 @@ class ProfileForm(forms.ModelForm):
         widget=forms.CheckboxSelectMultiple,
         label="When can you rehearse?",
         help_text="Select every time that normally works for you.",
+    )
+    nickname = forms.CharField(
+        max_length=150,
+        validators=[UnicodeUsernameValidator()],
+        label="Nickname",
+        help_text="This is your unique sign-in name. Use letters, numbers and @/./+/-/_ only.",
+        widget=forms.TextInput(attrs={"placeholder": "For example: maria_dances"}),
     )
 
     class Meta:
@@ -46,14 +58,26 @@ class ProfileForm(forms.ModelForm):
             "agreed_to_rules": "I agree to the site policy",
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
         super().__init__(*args, **kwargs)
+        if self.user and not self.is_bound:
+            self.initial["nickname"] = self.user.username
         if not self.is_bound and self.instance.preferred_rehearsal_time:
             self.initial["preferred_rehearsal_time"] = [
                 value.strip()
                 for value in self.instance.preferred_rehearsal_time.split("|")
                 if value.strip()
             ]
+
+    def clean_nickname(self):
+        nickname = self.cleaned_data["nickname"].strip()
+        users = get_user_model().objects.filter(username__iexact=nickname)
+        if self.user:
+            users = users.exclude(pk=self.user.pk)
+        if users.exists():
+            raise forms.ValidationError("This nickname is already taken. Please choose another one.")
+        return nickname
 
     def clean_preferred_rehearsal_time(self):
         return " | ".join(self.cleaned_data["preferred_rehearsal_time"])
