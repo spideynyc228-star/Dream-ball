@@ -27,8 +27,8 @@
           {{ form.photo_position_x }}{{ form.photo_position_y }}{{ form.photo_scale }}
         </div>
       </section>
-      <label class="profile-nickname">{{ form.nickname.label }}{{ form.nickname }}{% if form.nickname.help_text %}<small class="field-help">{{ form.nickname.help_text }}</small>{% endif %}{% for error in form.nickname.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
       <div class="form-grid">
+        <label>{{ form.nickname.label }}{{ form.nickname }}{% if form.nickname.help_text %}<small class="field-help">{{ form.nickname.help_text }}</small>{% endif %}{% for error in form.nickname.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
         {% for field in form %}
           {% if field.name != 'nickname' and field.name != 'bio' and field.name != 'photo' and field.name != 'photo_position_x' and field.name != 'photo_position_y' and field.name != 'photo_scale' and field.name != 'agreed_to_rules' %}
             {% if field.name == 'preferred_rehearsal_time' %}
