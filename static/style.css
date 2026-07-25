@@ -354,7 +354,7 @@ th { color: #8991a2; font-size: 8px; letter-spacing: .08em; text-transform: uppe
 
 /* Modern, native-feeling interface refinements */
 :root { --ui-font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
-body,button,input,textarea,select,.dream-landing *,.app-page *,.form-page *,.content-page *,.admin-page * { font-family:var(--ui-font) !important; }
+body,button,input,textarea,select,.dream-landing *,.app-page *,.form-page *,.content-page *,.admin-page *,.auth-page *,.status-page * { font-family:var(--ui-font) !important; }
 body { font-synthesis:none; }
 h1,h2,h3 { font-weight:700; letter-spacing:-.035em !important; }
 input::placeholder,textarea::placeholder { color:#929aae; opacity:1; }
