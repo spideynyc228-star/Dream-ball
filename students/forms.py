@@ -28,6 +28,11 @@ class ProfileForm(forms.ModelForm):
             "preferred_rehearsal_time": "Choose a time that usually works for your schedule.",
         }
 
+        labels = {
+            "gender": "Gender for dance matching",
+            "agreed_to_rules": "I agree to the site policy",
+        }
+
     def clean_photo(self):
         photo = self.cleaned_data.get("photo")
         if photo and photo.size > 5 * 1024 * 1024:
