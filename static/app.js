@@ -321,14 +321,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const updateProfileTabCount = (status, change, updateAll = false) => {
     if (!status || status === "all") return;
-    const tab = document.querySelector(`.profile-tabs a[href*="status=${status}"] b`);
-    if (!tab) return;
-    const current = Number.parseInt(tab.textContent, 10);
-    if (Number.isFinite(current)) tab.textContent = Math.max(0, current + change);
-    const allTab = document.querySelector('.profile-tabs a[href*="status=all"] b');
-    if (allTab && updateAll) {
-      const allCurrent = Number.parseInt(allTab.textContent, 10);
-      if (Number.isFinite(allCurrent)) allTab.textContent = Math.max(0, allCurrent + change);
+    const tabLink = Array.from(document.querySelectorAll(".profile-tabs a")).find((link) => link.getAttribute("href")?.includes(`status=${status}`));
+    const count = tabLink?.querySelector("b");
+    if (!count) return;
+    const current = Number.parseInt(count.textContent, 10);
+    if (Number.isFinite(current)) count.textContent = Math.max(0, current + change);
+    const allTabLink = Array.from(document.querySelectorAll(".profile-tabs a")).find((link) => link.getAttribute("href")?.includes("status=all"));
+    const allCount = allTabLink?.querySelector("b");
+    if (allCount && updateAll) {
+      const allCurrent = Number.parseInt(allCount.textContent, 10);
+      if (Number.isFinite(allCurrent)) allCount.textContent = Math.max(0, allCurrent + change);
     }
   };
   document.addEventListener("submit", async (event) => {
@@ -343,7 +345,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await response.json();
       if (!response.ok || !data.ok) throw new Error(data.message || "Could not update this profile.");
       const record = form.closest(".admin-record");
-      const selectedStatus = new URL(window.location.href).searchParams.get("status") || "pending";
+      const activeTab = document.querySelector(".profile-tabs a.active");
+      const selectedStatus = activeTab?.getAttribute("href")?.match(/status=(approved|pending|rejected|all)/)?.[1] || "pending";
       if (data.deleted) {
         record?.remove();
         updateProfileTabCount(data.previous_status, -1, true);
