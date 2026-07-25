@@ -516,3 +516,6 @@ html { background:#f7f9fb; } body { background:linear-gradient(135deg,#fff 0%,#f
 .moderation-filters input[type="hidden"] { display:none; }
 @media (max-width:900px) { .moderation-filters { grid-template-columns:1fr auto; }.moderation-filters input:not([type="hidden"]) { grid-column:1 / -1; } }
 @media (max-width:600px) { .moderation-filters { grid-template-columns:1fr; }.moderation-filters input:not([type="hidden"]) { grid-column:auto; } }
+
+.admin-nav a.active { color:#fff; background:#4f6f89; box-shadow:0 8px 18px rgba(50,75,99,.16); }
+@media (max-width:760px) { .admin-nav { display:grid; grid-template-columns:1fr 1fr; width:100%; }.admin-nav a { text-align:center; } }

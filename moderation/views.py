@@ -14,6 +14,9 @@ from notifications.models import Notification
 admin_required = user_passes_test(lambda u: u.is_authenticated and (u.role == "admin" or u.is_superuser))
 @admin_required
 def dashboard(request):
+    section = request.GET.get("section", "profiles")
+    if section not in {"codes", "profiles", "reports", "partnerships"}:
+        section = "profiles"
     status = request.GET.get("status", "pending")
     search = request.GET.get("q", "").strip()
     sort = request.GET.get("sort", "-updated_at")
@@ -30,7 +33,7 @@ def dashboard(request):
     available_codes = codes.filter(is_active=True, used_by__isnull=True)
     used_codes = codes.exclude(is_active=True, used_by__isnull=True)
     return render(request,"moderation/dashboard.html",{
-        "profiles": profiles.order_by(sort), "selected_status": status, "student_search": search,
+        "active_section": section, "profiles": profiles.order_by(sort), "selected_status": status, "student_search": search,
         "pending":Profile.objects.filter(status="pending").count(),
         "approved_profiles_count": Profile.objects.filter(status=Profile.Status.APPROVED).count(),
         "rejected_profiles_count": Profile.objects.filter(status=Profile.Status.REJECTED).count(),
@@ -64,8 +67,8 @@ def review_profile(request,pk,status):
     return redirect("moderation:dashboard")
 @admin_required
 def review_report(request,pk):
-    if request.method != "POST": return redirect("moderation:dashboard")
-    report=get_object_or_404(Report,pk=pk); report.status=request.POST.get("status", Report.Status.RESOLVED); report.reviewed=report.status == Report.Status.RESOLVED; report.moderator_note=request.POST.get("note", ""); report.save(); return redirect("moderation:dashboard")
+    if request.method != "POST": return redirect(f"{reverse('moderation:dashboard')}?section=reports")
+    report=get_object_or_404(Report,pk=pk); report.status=request.POST.get("status", Report.Status.RESOLVED); report.reviewed=report.status == Report.Status.RESOLVED; report.moderator_note=request.POST.get("note", ""); report.save(); return redirect(f"{reverse('moderation:dashboard')}?section=reports")
 
 
 @admin_required
@@ -73,7 +76,7 @@ def delete_report(request, pk):
     if request.method == "POST":
         get_object_or_404(Report, pk=pk).delete()
         messages.success(request, "Report deleted.")
-    return redirect("moderation:dashboard")
+    return redirect(f"{reverse('moderation:dashboard')}?section=reports")
 
 
 @admin_required
