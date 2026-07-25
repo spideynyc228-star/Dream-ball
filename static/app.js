@@ -16,10 +16,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  const confirmModal = document.querySelector("[data-confirm-modal]");
+  let formToConfirm = null;
+  const closeConfirmModal = () => {
+    if (!confirmModal) return;
+    confirmModal.hidden = true;
+    formToConfirm = null;
+  };
   document.querySelectorAll("form[data-confirm]").forEach((form) => {
     form.addEventListener("submit", (event) => {
-      if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+      if (form.dataset.confirmed === "true") return;
+      event.preventDefault();
+      if (!confirmModal) return;
+      formToConfirm = form;
+      confirmModal.querySelector("[data-confirm-message]").textContent = form.dataset.confirm;
+      confirmModal.hidden = false;
+      confirmModal.querySelector("[data-confirm-accept]").focus();
     });
+  });
+  confirmModal?.querySelectorAll("[data-confirm-cancel]").forEach((button) => button.addEventListener("click", closeConfirmModal));
+  confirmModal?.querySelector("[data-confirm-accept]")?.addEventListener("click", () => {
+    if (!formToConfirm) return;
+    formToConfirm.dataset.confirmed = "true";
+    formToConfirm.requestSubmit();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && confirmModal && !confirmModal.hidden) closeConfirmModal();
   });
 
   document.querySelectorAll("[data-copy-plan]").forEach((button) => {

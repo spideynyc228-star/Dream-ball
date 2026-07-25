@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from students.models import Profile, Partnership
 from accounts.models import InvitationCode
 from events.models import Event
@@ -84,7 +85,7 @@ def create_invitation(request):
         else:
             InvitationCode.objects.create(code=code, role=role)
             messages.success(request, f"Invitation code {code} is ready to share.")
-    return redirect("moderation:dashboard")
+    return redirect(f"{reverse('moderation:dashboard')}#codes")
 
 
 @admin_required
@@ -104,7 +105,7 @@ def update_invitation(request, pk):
             invitation.role = role
             invitation.save(update_fields=["code", "role"])
             messages.success(request, "Invitation code updated.")
-    return redirect("moderation:dashboard")
+    return redirect(f"{reverse('moderation:dashboard')}#codes")
 
 
 @admin_required
@@ -113,4 +114,4 @@ def delete_invitation(request, pk):
         invitation = get_object_or_404(InvitationCode, pk=pk)
         invitation.delete()
         messages.success(request, "Invitation code deleted. Existing accounts stay active.")
-    return redirect("moderation:dashboard")
+    return redirect(f"{reverse('moderation:dashboard')}#codes")
