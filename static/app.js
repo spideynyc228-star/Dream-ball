@@ -130,4 +130,44 @@ document.addEventListener("DOMContentLoaded", () => {
       if (event.key === "Escape") close();
     });
   });
+
+  const rehearsalModal = document.querySelector("[data-rehearsal-modal]");
+  if (rehearsalModal) {
+    const rehearsalForm = rehearsalModal.querySelector("[data-rehearsal-request]");
+    const rehearsalTitle = rehearsalModal.querySelector("#rehearsal-title");
+    const rehearsalMessage = rehearsalModal.querySelector("[data-rehearsal-message]");
+    const closeRehearsal = () => {
+      rehearsalModal.hidden = true;
+      rehearsalMessage.textContent = "";
+    };
+    document.querySelectorAll("[data-open-rehearsal]").forEach((button) => {
+      button.addEventListener("click", () => {
+        rehearsalForm.action = button.dataset.recipientUrl;
+        rehearsalTitle.textContent = `Invite ${button.dataset.recipientName} to a rehearsal`;
+        rehearsalModal.hidden = false;
+        rehearsalForm.querySelector('input[name="proposed_date"]').focus();
+      });
+    });
+    rehearsalModal.querySelectorAll("[data-close-rehearsal]").forEach((button) => button.addEventListener("click", closeRehearsal));
+    rehearsalForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const submitButton = rehearsalForm.querySelector('[type="submit"]');
+      submitButton.disabled = true;
+      rehearsalMessage.textContent = "Sending invitation…";
+      try {
+        const response = await fetch(rehearsalForm.action, { method: "POST", body: new FormData(rehearsalForm), headers: { "X-Requested-With": "XMLHttpRequest" } });
+        const data = await response.json();
+        rehearsalMessage.textContent = data.message;
+        if (response.ok) {
+          rehearsalForm.reset();
+          submitButton.textContent = "Invitation sent ✓";
+          window.setTimeout(closeRehearsal, 900);
+        }
+      } catch (_error) {
+        rehearsalMessage.textContent = "Could not send the invitation. Please try again.";
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  }
 });

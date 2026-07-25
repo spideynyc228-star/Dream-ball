@@ -27,8 +27,15 @@ class PartnershipRequest(models.Model):
     class Status(models.TextChoices): PENDING="pending", "Pending"; ACCEPTED="accepted", "Accepted"; DECLINED="declined", "Declined"
     sender=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="sent_partnership_requests")
     receiver=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="received_partnership_requests")
-    status=models.CharField(max_length=10,choices=Status.choices,default=Status.PENDING); created_at=models.DateTimeField(auto_now_add=True)
-    class Meta: constraints=[models.UniqueConstraint(fields=["sender","receiver"],name="unique_partnership_request")]
+    status=models.CharField(max_length=10,choices=Status.choices,default=Status.PENDING)
+    proposed_date=models.DateField(null=True, blank=True)
+    proposed_time=models.TimeField(null=True, blank=True)
+    location=models.CharField(max_length=160, blank=True)
+    note=models.CharField(max_length=280, blank=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
 
     def clean(self):
         from django.core.exceptions import ValidationError
@@ -43,3 +50,40 @@ class Partnership(models.Model):
     preparation_complete=models.BooleanField(default=False)
     class Meta: constraints=[models.UniqueConstraint(fields=["student_one","student_two"],name="unique_partnership")]
     def partner_for(self,user): return self.student_two if self.student_one_id==user.id else self.student_one
+
+
+class Rehearsal(models.Model):
+    class Status(models.TextChoices):
+        SCHEDULED = "scheduled", "Scheduled"
+        COMPLETED = "completed", "Completed"
+        CANCELLED = "cancelled", "Cancelled"
+
+    student_one = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rehearsals_one")
+    student_two = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rehearsals_two")
+    date = models.DateField(null=True, blank=True)
+    time = models.TimeField(null=True, blank=True)
+    location = models.CharField(max_length=160, blank=True)
+    note = models.CharField(max_length=280, blank=True)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.SCHEDULED)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["date", "time", "-created_at"]
+
+    def partner_for(self, user):
+        return self.student_two if self.student_one_id == user.id else self.student_one
+
+
+class FinalPartnerProposal(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Awaiting response"
+        ACCEPTED = "accepted", "Final partnership confirmed"
+        DECLINED = "declined", "Declined"
+
+    proposer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="final_partner_proposals_sent")
+    candidate = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="final_partner_proposals_received")
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
