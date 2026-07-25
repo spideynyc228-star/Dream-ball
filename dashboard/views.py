@@ -15,7 +15,7 @@ def home(request):
 
 @login_required
 def dashboard(request):
-    if request.user.role != "student":
+    if request.user.role == "admin":
         return redirect("moderation:dashboard")
     profile = getattr(request.user, "profile", None)
     if profile and profile.status == Profile.Status.APPROVED:
@@ -42,7 +42,7 @@ def dashboard(request):
 
 @login_required
 def event_detail(request):
-    if request.user.role != "student":
+    if request.user.role == "admin":
         return redirect("moderation:dashboard")
     profile = getattr(request.user, "profile", None)
     if not profile or profile.status != Profile.Status.APPROVED:
@@ -67,7 +67,7 @@ def event_detail(request):
 
 @login_required
 def notifications(request):
-    if request.user.role != "student":
+    if request.user.role == "admin":
         return redirect("moderation:dashboard")
     request.user.notifications.filter(is_read=False).update(is_read=True)
     return render(request, "dashboard/notifications.html", {"notifications": request.user.notifications.order_by("-created_at")})

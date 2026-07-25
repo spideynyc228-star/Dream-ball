@@ -10,10 +10,8 @@ from accounts.models import InvitationCode
 from events.models import Event
 from reports.models import Report
 from notifications.models import Notification
-staff_required=user_passes_test(lambda u:u.is_authenticated and u.is_staff_member)
-moderator_required = user_passes_test(lambda u: u.is_authenticated and u.role in {"moderator", "admin"})
-admin_required = user_passes_test(lambda u: u.is_authenticated and u.role == "admin")
-@staff_required
+admin_required = user_passes_test(lambda u: u.is_authenticated and (u.role == "admin" or u.is_superuser))
+@admin_required
 def dashboard(request):
     status = request.GET.get("status", "pending")
     search = request.GET.get("q", "").strip()
@@ -37,8 +35,7 @@ def dashboard(request):
         "partnerships":Partnership.objects.select_related("student_one", "student_two").order_by("-created_at")[:8],
         "events":Event.objects.order_by("date")[:4],
     })
-@staff_required
-@moderator_required
+@admin_required
 def review_profile(request,pk,status):
     if request.method != "POST" or status not in {Profile.Status.APPROVED, Profile.Status.REJECTED}: return redirect("moderation:dashboard")
     profile=get_object_or_404(Profile,pk=pk)
@@ -49,14 +46,13 @@ def review_profile(request,pk,status):
     message = "Your profile was approved. You can now browse the student directory." if status == Profile.Status.APPROVED else "Your profile needs an update before approval. Please read the moderator note."
     Notification.objects.create(user=profile.user, message=message)
     return redirect("moderation:dashboard")
-@staff_required
-@moderator_required
+@admin_required
 def review_report(request,pk):
     if request.method != "POST": return redirect("moderation:dashboard")
     report=get_object_or_404(Report,pk=pk); report.status=request.POST.get("status", Report.Status.RESOLVED); report.reviewed=report.status == Report.Status.RESOLVED; report.moderator_note=request.POST.get("note", ""); report.save(); return redirect("moderation:dashboard")
 
 
-@moderator_required
+@admin_required
 def delete_report(request, pk):
     if request.method == "POST":
         get_object_or_404(Report, pk=pk).delete()
@@ -64,7 +60,7 @@ def delete_report(request, pk):
     return redirect("moderation:dashboard")
 
 
-@moderator_required
+@admin_required
 def delete_profile(request, pk):
     if request.method == "POST":
         profile = get_object_or_404(Profile, pk=pk)
@@ -77,9 +73,9 @@ def delete_profile(request, pk):
 def create_invitation(request):
     if request.method == "POST":
         code = request.POST.get("code", "").strip().upper() or secrets.token_urlsafe(7).upper()
-        role = request.POST.get("role", "student")
-        if role not in {"student", "moderator", "teacher", "admin"}:
-            role = "student"
+        role = request.POST.get("role", "user")
+        if role not in {"user", "admin"}:
+            role = "user"
         if InvitationCode.objects.filter(code=code).exists():
             messages.error(request, "That invitation code already exists.")
         else:
@@ -98,7 +94,7 @@ def update_invitation(request, pk):
             messages.error(request, "Invitation code cannot be empty.")
         elif InvitationCode.objects.exclude(pk=invitation.pk).filter(code=code).exists():
             messages.error(request, "That invitation code already exists.")
-        elif role not in {"student", "moderator", "teacher", "admin"}:
+        elif role not in {"user", "admin"}:
             messages.error(request, "Choose a valid account role.")
         else:
             invitation.code = code

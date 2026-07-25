@@ -21,7 +21,7 @@ def approved_required(view):
 @login_required
 def profile(request):
     existing_profile = getattr(request.user, "profile", None)
-    if request.user.role != "student":
+    if request.user.role == "admin":
         return redirect("moderation:dashboard")
     if existing_profile and existing_profile.status == Profile.Status.PENDING and existing_profile.is_complete:
         return redirect("dashboard:home")
