@@ -73,6 +73,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  document.querySelectorAll('.admin-nav a[href^="#"]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const target = document.querySelector(link.getAttribute("href"));
+      if (!target) return;
+
+      event.preventDefault();
+      const headerHeight = document.querySelector(".site-header")?.offsetHeight || 0;
+      const destination = Math.max(0, target.getBoundingClientRect().top + window.scrollY - headerHeight - 18);
+      window.scrollTo({ top: destination, behavior: "smooth" });
+      history.replaceState(null, "", link.getAttribute("href"));
+    });
+  });
+
   document.querySelectorAll("[data-notification-menu]").forEach((menu) => {
     const toggle = menu.querySelector("[data-notification-toggle]");
     const popover = menu.querySelector("[data-notification-popover]");
