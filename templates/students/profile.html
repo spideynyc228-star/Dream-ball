@@ -19,12 +19,12 @@
           {% if profile.photo %}<img id="photo-preview" src="{{ profile.photo.url }}" alt="Your profile photo" style="--photo-x:{{ profile.photo_position_x }}%;--photo-y:{{ profile.photo_position_y }}%;--photo-scale:{{ profile.photo_scale }};">{% else %}<span id="photo-placeholder">+</span><img id="photo-preview" hidden alt="Selected profile photo">{% endif %}
         </div>
         <div class="avatar-editor-controls">
-          <div><p class="field-label">Profile photo</p><b>Choose how your avatar is framed.</b><small>A clear, appropriate photo helps classmates recognise you.</small></div>
+          <div><p class="field-label">Profile photo</p><b>Frame your avatar your way.</b><small>Drag the photo in the square to choose the visible area, then adjust the zoom if needed.</small></div>
           <label class="photo-upload-button">Choose photo {{ form.photo }}</label>
           <div class="photo-sliders" {% if not profile.photo %}hidden{% endif %} data-photo-sliders>
-            <label>Move left or right <input type="range" min="0" max="100" value="{{ form.photo_position_x.value|default:50 }}" data-photo-x></label>
-            <label>Move up or down <input type="range" min="0" max="100" value="{{ form.photo_position_y.value|default:50 }}" data-photo-y></label>
             <label>Zoom <input type="range" min="100" max="160" value="{{ form.photo_scale.value|default:100 }}" data-photo-scale></label>
+            <input type="hidden" value="{{ form.photo_position_x.value|default:50 }}" data-photo-x>
+            <input type="hidden" value="{{ form.photo_position_y.value|default:50 }}" data-photo-y>
           </div>
           {{ form.photo_position_x }}{{ form.photo_position_y }}{{ form.photo_scale }}
         </div>

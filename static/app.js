@@ -23,6 +23,34 @@ document.addEventListener("DOMContentLoaded", () => {
       if (controls.hiddenScale) controls.hiddenScale.value = controls.scale.value;
     };
     [controls.x, controls.y, controls.scale].forEach((control) => control?.addEventListener("input", updatePhotoFrame));
+    let dragState = null;
+    preview?.addEventListener("pointerdown", (event) => {
+      if (preview.hidden || !controls.x || !controls.y) return;
+      dragState = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+      preview.setPointerCapture(event.pointerId);
+      preview.classList.add("is-dragging");
+    });
+    preview?.addEventListener("pointermove", (event) => {
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
+      const bounds = preview.getBoundingClientRect();
+      const moveX = ((event.clientX - dragState.x) / bounds.width) * 100;
+      const moveY = ((event.clientY - dragState.y) / bounds.height) * 100;
+      const scale = Math.max(1, Number(controls.scale?.value || 100) / 100);
+      const clamp = (value) => Math.max(0, Math.min(100, value));
+      controls.x.value = clamp(Number(controls.x.value) - (moveX / scale));
+      controls.y.value = clamp(Number(controls.y.value) - (moveY / scale));
+      dragState.x = event.clientX;
+      dragState.y = event.clientY;
+      updatePhotoFrame();
+    });
+    const stopPhotoDrag = (event) => {
+      if (!dragState || event.pointerId !== dragState.pointerId) return;
+      if (preview?.hasPointerCapture(event.pointerId)) preview.releasePointerCapture(event.pointerId);
+      preview?.classList.remove("is-dragging");
+      dragState = null;
+    };
+    preview?.addEventListener("pointerup", stopPhotoDrag);
+    preview?.addEventListener("pointercancel", stopPhotoDrag);
     updatePhotoFrame();
     photoInput.addEventListener("change", () => {
       const file = photoInput.files?.[0];
