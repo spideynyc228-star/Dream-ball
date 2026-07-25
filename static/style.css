@@ -311,7 +311,7 @@ th { color: #8991a2; font-size: 8px; letter-spacing: .08em; text-transform: uppe
 }
 
 /* Dream Ball public experience */
-.landing-page { overflow-x: hidden; background: #0a102c; color: #f9f7ef; }
+.landing-page { overflow-x: hidden; overflow-y: auto; background: #0a102c; color: #f9f7ef; }
 .landing-header { position: fixed; z-index: 50; inset: 0 0 auto; height: 78px; display:flex; align-items:center; justify-content:space-between; padding:0 clamp(22px,5vw,78px); background:linear-gradient(180deg,rgba(10,16,44,.7),transparent); backdrop-filter:blur(3px); }
 .landing-header .brand,.landing-footer-full .brand { color:#fff; }
 .landing-nav { display:flex; gap:25px; color:#d7d9e8; font-size:12px; }
