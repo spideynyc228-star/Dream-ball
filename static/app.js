@@ -37,8 +37,10 @@ document.addEventListener("DOMContentLoaded", () => {
   confirmModal?.querySelectorAll("[data-confirm-cancel]").forEach((button) => button.addEventListener("click", closeConfirmModal));
   confirmModal?.querySelector("[data-confirm-accept]")?.addEventListener("click", () => {
     if (!formToConfirm) return;
-    formToConfirm.dataset.confirmed = "true";
-    formToConfirm.requestSubmit();
+    const confirmedForm = formToConfirm;
+    confirmedForm.dataset.confirmed = "true";
+    closeConfirmModal();
+    confirmedForm.requestSubmit();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && confirmModal && !confirmModal.hidden) closeConfirmModal();
