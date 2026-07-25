@@ -4,6 +4,7 @@ from django.db import IntegrityError
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_time
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -40,6 +41,8 @@ def profile(request):
         profile.moderation_note = ""
         profile.save()
         messages.success(request, "Your profile was submitted for moderation.")
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({"ok": True, "redirect": reverse("dashboard:home")})
         return redirect("dashboard:home")
     return render(request, "students/profile.html", {"form": form, "profile": profile, "has_saved_profile": profile.is_complete})
 

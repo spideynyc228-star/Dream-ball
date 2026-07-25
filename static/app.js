@@ -317,6 +317,13 @@ document.addEventListener("DOMContentLoaded", () => {
           headers: { "X-Requested-With": "XMLHttpRequest" },
         });
         let response = await sendProfile();
+        if (response.headers.get("content-type")?.includes("application/json")) {
+          const data = await response.json();
+          if (!response.ok || !data.ok) throw new Error(data.message || "Your profile could not be saved.");
+          sessionStorage.removeItem(storageKey);
+          window.location.assign(data.redirect || "/dashboard/");
+          return;
+        }
         const responseUrl = new URL(response.url, window.location.href);
         if (responseUrl.searchParams.get("_form_refresh") === "1") {
           const refreshedPage = new DOMParser().parseFromString(await response.text(), "text/html");
@@ -326,6 +333,13 @@ document.addEventListener("DOMContentLoaded", () => {
           const visibleToken = form.querySelector('[name="csrfmiddlewaretoken"]');
           if (visibleToken) visibleToken.value = freshToken;
           response = await sendProfile();
+          if (response.headers.get("content-type")?.includes("application/json")) {
+            const data = await response.json();
+            if (!response.ok || !data.ok) throw new Error(data.message || "Your profile could not be saved.");
+            sessionStorage.removeItem(storageKey);
+            window.location.assign(data.redirect || "/dashboard/");
+            return;
+          }
         }
         sessionStorage.removeItem(storageKey);
         if (response.redirected) {
