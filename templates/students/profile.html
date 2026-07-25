@@ -14,9 +14,24 @@
     {% if profile.moderation_note %}<p class="moderation-warning">Moderator note: {{ profile.moderation_note }}</p>{% endif %}
     <form class="stack-form" method="post" enctype="multipart/form-data" data-form-recovery="profile">
       {% csrf_token %}
+      <section class="avatar-editor" data-avatar-editor>
+        <div class="avatar-editor-preview" aria-label="Profile photo preview">
+          {% if profile.photo %}<img id="photo-preview" src="{{ profile.photo.url }}" alt="Your profile photo" style="--photo-x:{{ profile.photo_position_x }}%;--photo-y:{{ profile.photo_position_y }}%;--photo-scale:{{ profile.photo_scale }};">{% else %}<span id="photo-placeholder">+</span><img id="photo-preview" hidden alt="Selected profile photo">{% endif %}
+        </div>
+        <div class="avatar-editor-controls">
+          <div><p class="field-label">Profile photo</p><b>Choose how your avatar is framed.</b><small>A clear, appropriate photo helps classmates recognise you.</small></div>
+          <label class="photo-upload-button">Choose photo {{ form.photo }}</label>
+          <div class="photo-sliders" {% if not profile.photo %}hidden{% endif %} data-photo-sliders>
+            <label>Move left or right <input type="range" min="0" max="100" value="{{ form.photo_position_x.value|default:50 }}" data-photo-x></label>
+            <label>Move up or down <input type="range" min="0" max="100" value="{{ form.photo_position_y.value|default:50 }}" data-photo-y></label>
+            <label>Zoom <input type="range" min="100" max="160" value="{{ form.photo_scale.value|default:100 }}" data-photo-scale></label>
+          </div>
+          {{ form.photo_position_x }}{{ form.photo_position_y }}{{ form.photo_scale }}
+        </div>
+      </section>
       <div class="form-grid">
         {% for field in form %}
-          {% if field.name != 'bio' and field.name != 'photo' and field.name != 'agreed_to_rules' %}
+          {% if field.name != 'bio' and field.name != 'photo' and field.name != 'photo_position_x' and field.name != 'photo_position_y' and field.name != 'photo_scale' and field.name != 'agreed_to_rules' %}
             {% if field.name == 'preferred_rehearsal_time' %}
               <fieldset class="rehearsal-time-field">
                 <legend>{{ field.label }}</legend>
@@ -33,8 +48,6 @@
       {% for field in form %}
         {% if field.name == 'bio' %}
           <label>{{ field.label }}{{ field }}{% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
-        {% elif field.name == 'photo' %}
-          <label>Optional profile photo{{ field }}<small class="field-help">A clear, appropriate photo helps classmates recognise you.</small></label>
         {% elif field.name == 'agreed_to_rules' %}
           <label class="agreement">{{ field }}<span>I agree to the <a href="{% url 'safety:index' %}" target="_blank" rel="noopener">site policy and community rules</a>, privacy expectations and respectful event conduct.</span>{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
         {% endif %}

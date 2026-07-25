@@ -1,18 +1,42 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const photoInput = document.querySelector("#photo");
+  const photoInput = document.querySelector("#id_photo, #photo");
   if (photoInput) {
+    const editor = document.querySelector("[data-avatar-editor]");
+    const preview = document.querySelector("#photo-preview");
+    const placeholder = document.querySelector("#photo-placeholder");
+    const sliders = document.querySelector("[data-photo-sliders]");
+    const controls = {
+      x: document.querySelector("[data-photo-x]"),
+      y: document.querySelector("[data-photo-y]"),
+      scale: document.querySelector("[data-photo-scale]"),
+      hiddenX: document.querySelector("#id_photo_position_x"),
+      hiddenY: document.querySelector("#id_photo_position_y"),
+      hiddenScale: document.querySelector("#id_photo_scale"),
+    };
+    const updatePhotoFrame = () => {
+      if (!preview || !controls.x || !controls.y || !controls.scale) return;
+      preview.style.setProperty("--photo-x", `${controls.x.value}%`);
+      preview.style.setProperty("--photo-y", `${controls.y.value}%`);
+      preview.style.setProperty("--photo-scale", controls.scale.value);
+      if (controls.hiddenX) controls.hiddenX.value = controls.x.value;
+      if (controls.hiddenY) controls.hiddenY.value = controls.y.value;
+      if (controls.hiddenScale) controls.hiddenScale.value = controls.scale.value;
+    };
+    [controls.x, controls.y, controls.scale].forEach((control) => control?.addEventListener("input", updatePhotoFrame));
+    updatePhotoFrame();
     photoInput.addEventListener("change", () => {
       const file = photoInput.files?.[0];
       if (!file) return;
       const name = document.querySelector("#photo-name");
-      const preview = document.querySelector("#photo-preview");
-      const placeholder = document.querySelector("#photo-placeholder");
       if (name) name.textContent = file.name;
       if (placeholder) placeholder.hidden = true;
       if (preview) {
         preview.src = URL.createObjectURL(file);
         preview.hidden = false;
       }
+      if (sliders) sliders.hidden = false;
+      if (editor) editor.classList.add("has-photo");
+      updatePhotoFrame();
     });
   }
 

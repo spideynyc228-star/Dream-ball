@@ -17,7 +17,7 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model=Profile
-        fields=["grade","class_letter","gender","height","bio","dance_experience","preferred_rehearsal_time","photo","agreed_to_rules"]
+        fields=["photo","photo_position_x","photo_position_y","photo_scale","grade","class_letter","gender","height","bio","dance_experience","preferred_rehearsal_time","agreed_to_rules"]
         widgets={
             "grade": forms.Select(choices=[("", "Choose your grade"), ("9", "Grade 9"), ("10", "Grade 10"), ("11", "Grade 11"), ("12", "Grade 12")]),
             "class_letter": forms.TextInput(attrs={"placeholder": "For example: A"}),
@@ -26,6 +26,9 @@ class ProfileForm(forms.ModelForm):
             "bio":forms.Textarea(attrs={"rows":4, "placeholder": "For example: I enjoy music, school events and learning a new dance step. I would be happy to prepare calmly and respectfully."}),
             "dance_experience": forms.Select(choices=[("", "Choose an option"), ("Beginner", "Beginner - I am just starting"), ("Some experience", "Some experience - I have tried a few dances"), ("Intermediate", "Intermediate - I attend classes or practise regularly"), ("Experienced", "Experienced - I feel confident dancing")]),
             "photo":forms.ClearableFileInput(attrs={"accept":"image/jpeg,image/png,image/webp"}),
+            "photo_position_x": forms.HiddenInput(),
+            "photo_position_y": forms.HiddenInput(),
+            "photo_scale": forms.HiddenInput(),
             "agreed_to_rules":forms.CheckboxInput(attrs={"required": True}),
         }
 
@@ -60,6 +63,15 @@ class ProfileForm(forms.ModelForm):
         if photo and photo.size > 5 * 1024 * 1024:
             raise forms.ValidationError("Please upload an image smaller than 5 MB.")
         return photo
+
+    def clean_photo_position_x(self):
+        return min(100, max(0, self.cleaned_data["photo_position_x"]))
+
+    def clean_photo_position_y(self):
+        return min(100, max(0, self.cleaned_data["photo_position_y"]))
+
+    def clean_photo_scale(self):
+        return min(160, max(100, self.cleaned_data["photo_scale"]))
 
     def clean(self):
         cleaned = super().clean()
