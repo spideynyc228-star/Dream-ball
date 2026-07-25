@@ -67,15 +67,25 @@ def review_profile(request,pk,status):
     return redirect("moderation:dashboard")
 @admin_required
 def review_report(request,pk):
-    if request.method != "POST": return redirect(f"{reverse('moderation:dashboard')}?section=reports")
-    report=get_object_or_404(Report,pk=pk); report.status=request.POST.get("status", Report.Status.RESOLVED); report.reviewed=report.status == Report.Status.RESOLVED; report.moderator_note=request.POST.get("note", ""); report.save(); return redirect(f"{reverse('moderation:dashboard')}?section=reports")
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "message": "This report action is not available."}, status=405) if is_async else redirect(f"{reverse('moderation:dashboard')}?section=reports")
+    report=get_object_or_404(Report,pk=pk); report.status=request.POST.get("status", Report.Status.RESOLVED); report.reviewed=report.status == Report.Status.RESOLVED; report.moderator_note=request.POST.get("note", ""); report.save()
+    if is_async:
+        return JsonResponse({"ok": True, "message": "Report marked as resolved.", "status": report.status, "status_label": report.get_status_display()})
+    return redirect(f"{reverse('moderation:dashboard')}?section=reports")
 
 
 @admin_required
 def delete_report(request, pk):
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method == "POST":
         get_object_or_404(Report, pk=pk).delete()
+        if is_async:
+            return JsonResponse({"ok": True, "message": "Report deleted.", "deleted": True})
         messages.success(request, "Report deleted.")
+    elif is_async:
+        return JsonResponse({"ok": False, "message": "This report action is not available."}, status=405)
     return redirect(f"{reverse('moderation:dashboard')}?section=reports")
 
 
@@ -111,7 +121,7 @@ def create_invitation(request):
             messages.success(request, f"Invitation code {code} is ready to share.")
         if is_async:
             return JsonResponse({"ok": False, "message": "That invitation code already exists."}, status=400)
-    return redirect(f"{reverse('moderation:dashboard')}#codes")
+    return redirect(f"{reverse('moderation:dashboard')}?section=codes")
 
 
 @admin_required
@@ -136,7 +146,7 @@ def update_invitation(request, pk):
             messages.success(request, "Invitation code updated.")
         if is_async:
             return JsonResponse({"ok": False, "message": "Check the invitation code and role, then try again."}, status=400)
-    return redirect(f"{reverse('moderation:dashboard')}#codes")
+    return redirect(f"{reverse('moderation:dashboard')}?section=codes")
 
 
 @admin_required
@@ -148,4 +158,4 @@ def delete_invitation(request, pk):
         if is_async:
             return JsonResponse({"ok": True, "message": "Invitation code deleted. Existing accounts stay active."})
         messages.success(request, "Invitation code deleted. Existing accounts stay active.")
-    return redirect(f"{reverse('moderation:dashboard')}#codes")
+    return redirect(f"{reverse('moderation:dashboard')}?section=codes")

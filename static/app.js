@@ -275,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  const availableInvitationList = document.querySelector('.admin-page [data-code-list="available"]');
+  const availableInvitationList = () => document.querySelector('.admin-page [data-code-list="available"]');
   const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
   const showAdminNotice = (message, isError = false) => {
     const stack = document.querySelector(".flash-stack") || document.body.appendChild(Object.assign(document.createElement("div"), { className: "flash-stack", ariaLive: "polite" }));
@@ -306,7 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!response.ok || !data.ok) throw new Error(data.message || "Could not save this change.");
       if (form.classList.contains("code-create-form")) {
         const csrfToken = form.querySelector('[name="csrfmiddlewaretoken"]')?.value || "";
-        availableInvitationList?.prepend(createInvitationCard(data.invitation, csrfToken));
+        availableInvitationList()?.prepend(createInvitationCard(data.invitation, csrfToken));
         form.reset();
       } else if (form.closest(".invitation-record") && !form.classList.contains("code-edit-form")) {
         form.closest(".invitation-record").remove();
@@ -317,6 +317,72 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally {
       if (button) button.disabled = false;
     }
+  });
+
+  document.addEventListener("submit", async (event) => {
+    const form = event.target;
+    if (!form.matches(".admin-page .report-actions form")) return;
+    if (event.defaultPrevented) return;
+    event.preventDefault();
+    const button = form.querySelector('[type="submit"]');
+    if (button) button.disabled = true;
+    try {
+      const response = await fetch(form.action, { method: "POST", body: new FormData(form), headers: { "X-Requested-With": "XMLHttpRequest" } });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.message || "Could not update this report.");
+      const record = form.closest(".report-record");
+      if (data.deleted) {
+        record?.remove();
+      } else {
+        const status = record?.querySelector(".status");
+        if (status) {
+          status.className = "status status-approved";
+          status.textContent = data.status_label;
+        }
+        form.remove();
+      }
+      showAdminNotice(data.message);
+    } catch (error) {
+      showAdminNotice(error.message || "Could not update this report.", true);
+      if (button) button.disabled = false;
+    }
+  });
+
+  const replaceAdminSection = async (url, pushHistory = true) => {
+    const response = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+    if (!response.ok) throw new Error("Could not open this section.");
+    const documentFromResponse = new DOMParser().parseFromString(await response.text(), "text/html");
+    const nextShell = documentFromResponse.querySelector(".admin-shell");
+    const currentShell = document.querySelector(".admin-shell");
+    if (!nextShell || !currentShell) throw new Error("Could not update this section.");
+    currentShell.replaceWith(nextShell);
+    if (pushHistory) history.pushState({}, "", url);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  document.addEventListener("click", async (event) => {
+    const link = event.target.closest(".admin-page .admin-nav a, .admin-page .profile-tabs a");
+    if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    try {
+      await replaceAdminSection(link.href);
+    } catch (error) {
+      showAdminNotice(error.message || "Could not open this section.", true);
+    }
+  });
+  document.addEventListener("submit", async (event) => {
+    const form = event.target;
+    if (!form.matches(".admin-page .moderation-filters")) return;
+    event.preventDefault();
+    const parameters = new URLSearchParams(new FormData(form));
+    try {
+      await replaceAdminSection(`${window.location.pathname}?${parameters.toString()}`);
+    } catch (error) {
+      showAdminNotice(error.message || "Could not filter profiles.", true);
+    }
+  });
+  window.addEventListener("popstate", () => {
+    if (!document.querySelector(".admin-page .admin-shell")) return;
+    replaceAdminSection(window.location.href, false).catch(() => window.location.reload());
   });
 
   const updateProfileTabCount = (status, change, updateAll = false) => {
