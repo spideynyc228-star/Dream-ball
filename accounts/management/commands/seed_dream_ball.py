@@ -44,6 +44,7 @@ class Command(BaseCommand):
             status = Profile.Status.PENDING if index in {18, 19} else Profile.Status.REJECTED if index == 20 else Profile.Status.APPROVED
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.grade = "11"; profile.class_letter = chr(64 + ((index - 1) % 4) + 1); profile.height = 158 + index
+            profile.gender = "male" if first in {"Noah", "Ethan", "Lucas", "Leo", "Daniel", "Max", "Ryan", "Ben", "Alex", "Sam"} else "female"
             profile.bio = "Looking forward to a kind, memorable school celebration and preparing thoughtfully with the community."
             profile.dance_experience = ["Beginner", "Some experience", "Intermediate", "Experienced"][index % 4]
             profile.personality = ["Calm", "Creative", "Thoughtful", "Outgoing"][index % 4]

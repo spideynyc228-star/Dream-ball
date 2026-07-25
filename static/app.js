@@ -170,4 +170,33 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  document.querySelectorAll("form[data-form-recovery]").forEach((form) => {
+    const storageKey = `dream-ball-form-${form.dataset.formRecovery}`;
+    const shouldRestore = new URLSearchParams(window.location.search).get("_form_refresh") === "1";
+    if (shouldRestore) {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(storageKey));
+        if (saved && Date.now() - saved.savedAt < 30 * 60 * 1000) {
+          Object.entries(saved.values).forEach(([name, value]) => {
+            const field = form.elements.namedItem(name);
+            if (!field || field.type === "password" || field.type === "file") return;
+            if (field.type === "checkbox") field.checked = Boolean(value);
+            else field.value = value;
+          });
+        }
+        sessionStorage.removeItem(storageKey);
+      } catch (_error) {
+        sessionStorage.removeItem(storageKey);
+      }
+    }
+    form.addEventListener("submit", () => {
+      const values = {};
+      Array.from(form.elements).forEach((field) => {
+        if (!field.name || field.name === "csrfmiddlewaretoken" || field.type === "password" || field.type === "file") return;
+        values[field.name] = field.type === "checkbox" ? field.checked : field.value;
+      });
+      sessionStorage.setItem(storageKey, JSON.stringify({ savedAt: Date.now(), values }));
+    });
+  });
 });

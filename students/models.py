@@ -4,8 +4,10 @@ from django.utils import timezone
 
 class Profile(models.Model):
     class Status(models.TextChoices): PENDING="pending", "Pending review"; APPROVED="approved", "Approved"; REJECTED="rejected", "Needs changes"
+    class Gender(models.TextChoices): FEMALE="female", "Female"; MALE="male", "Male"
     user=models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name="profile")
     grade=models.CharField(max_length=8, blank=True); class_letter=models.CharField(max_length=4, blank=True)
+    gender=models.CharField(max_length=10, choices=Gender.choices, blank=True)
     height=models.PositiveSmallIntegerField(help_text="Height in cm", null=True, blank=True)
     bio=models.TextField(max_length=600, blank=True); dance_experience=models.CharField(max_length=40, blank=True)
     personality=models.CharField(max_length=80, blank=True); preferred_rehearsal_time=models.CharField(max_length=80, blank=True)
@@ -18,7 +20,7 @@ class Profile(models.Model):
 
     @property
     def is_complete(self):
-        required = (self.grade, self.class_letter, self.height, self.bio, self.dance_experience, self.personality, self.preferred_rehearsal_time)
+        required = (self.grade, self.class_letter, self.gender, self.height, self.bio, self.dance_experience, self.personality, self.preferred_rehearsal_time)
         return all(required) and self.agreed_to_rules
 
     def __str__(self): return self.user.get_full_name() or self.user.username

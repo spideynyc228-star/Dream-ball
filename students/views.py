@@ -4,6 +4,8 @@ from django.db import IntegrityError
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.utils.dateparse import parse_date, parse_time
 
 from notifications.models import Notification
 from .forms import ProfileForm
@@ -43,6 +45,14 @@ def profile(request):
 @approved_required
 def browse(request):
     profiles = Profile.objects.filter(status=Profile.Status.APPROVED).exclude(user=request.user).select_related("user")
+    opposite_gender = {
+        Profile.Gender.FEMALE: Profile.Gender.MALE,
+        Profile.Gender.MALE: Profile.Gender.FEMALE,
+    }.get(request.user.profile.gender)
+    if opposite_gender:
+        profiles = profiles.filter(gender=opposite_gender)
+    else:
+        profiles = profiles.none()
     q = request.GET.get("q", "")
     if q:
         profiles = profiles.filter(Q(user__first_name__icontains=q) | Q(user__last_name__icontains=q) | Q(bio__icontains=q))
@@ -51,7 +61,7 @@ def browse(request):
             profiles = profiles.filter(**{field: request.GET[field]})
     if request.GET.get("height_min"):
         profiles = profiles.filter(height__gte=request.GET["height_min"])
-    return render(request, "students/browse.html", {"profiles": profiles, "grades": Profile.objects.values_list("grade", flat=True).distinct(), "experiences": Profile.objects.values_list("dance_experience", flat=True).distinct()})
+    return render(request, "students/browse.html", {"profiles": profiles, "grades": Profile.objects.values_list("grade", flat=True).distinct(), "experiences": Profile.objects.values_list("dance_experience", flat=True).distinct(), "today": timezone.localdate().isoformat()})
 
 
 @approved_required
@@ -77,6 +87,12 @@ def send_request(request, user_id):
 
     if receiver == request.user:
         return reply("You cannot invite yourself.")
+    opposite_gender = {
+        Profile.Gender.FEMALE: Profile.Gender.MALE,
+        Profile.Gender.MALE: Profile.Gender.FEMALE,
+    }.get(request.user.profile.gender)
+    if not opposite_gender or receiver.profile.gender != opposite_gender:
+        return reply("Rehearsal invitations are available only to opposite-gender profiles.")
     if Partnership.objects.filter(Q(student_one=request.user) | Q(student_two=request.user)).exists():
         return reply("You already have a final dance partner.")
     date = request.POST.get("proposed_date") or None
@@ -85,6 +101,12 @@ def send_request(request, user_id):
     note = request.POST.get("note", "").strip()
     if not date or not time or not location:
         return reply("Choose a date, time and a public rehearsal location.")
+    proposed_date, proposed_time = parse_date(date), parse_time(time)
+    if not proposed_date or not proposed_time:
+        return reply("Choose a valid rehearsal date and time.")
+    local_now = timezone.localtime()
+    if proposed_date < timezone.localdate() or (proposed_date == timezone.localdate() and proposed_time <= local_now.time()):
+        return reply("Choose a future rehearsal date and time.")
     try:
         PartnershipRequest.objects.create(sender=request.user, receiver=receiver, proposed_date=date, proposed_time=time, location=location, note=note)
     except IntegrityError:
