@@ -15,12 +15,13 @@
     <form class="stack-form" method="post" enctype="multipart/form-data" data-form-recovery="profile">
       {% csrf_token %}
       <section class="avatar-editor" data-avatar-editor>
-        <label class="avatar-editor-preview" for="{{ form.photo.id_for_label }}" aria-label="Choose profile photo or drag the current photo to adjust it">
+        <div class="avatar-editor-preview" aria-label="Profile photo preview">
           {% if profile.photo %}<img id="photo-preview" src="{{ profile.photo.url }}" alt="Your profile photo" style="--photo-x:{{ profile.photo_position_x }}%;--photo-y:{{ profile.photo_position_y }}%;--photo-scale:{{ profile.photo_scale }};">{% else %}<span id="photo-placeholder">+</span><img id="photo-preview" hidden alt="Selected profile photo">{% endif %}
           {{ form.photo }}
-        </label>
+        </div>
         <div class="avatar-editor-controls">
-          <div><p class="field-label">Profile photo</p><b>Frame your avatar your way.</b><small>Drag the photo in the square to choose the visible area, then adjust the zoom if needed.</small></div>
+          <div><p class="field-label">Profile photo</p><b>Set your avatar.</b><small>Add a photo, then adjust its position and zoom in a separate editor.</small></div>
+          <button class="button button-secondary avatar-select-button" type="button" data-avatar-select>Add photo</button>
           <div class="photo-sliders" {% if not profile.photo %}hidden{% endif %} data-photo-sliders>
             <label>Zoom <input type="range" min="100" max="160" value="{{ form.photo_scale.value|default:100 }}" data-photo-scale></label>
             <input type="hidden" value="{{ form.photo_position_x.value|default:50 }}" data-photo-x>

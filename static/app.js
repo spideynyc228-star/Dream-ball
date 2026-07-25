@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cropStage = document.querySelector("[data-avatar-crop-stage]");
     const cropPreview = document.querySelector("[data-avatar-crop-preview]");
     const cropZoom = document.querySelector("[data-avatar-crop-zoom]");
+    document.querySelector("[data-avatar-select]")?.addEventListener("click", () => photoInput.click());
     const controls = {
       x: document.querySelector("[data-photo-x]"),
       y: document.querySelector("[data-photo-y]"),
