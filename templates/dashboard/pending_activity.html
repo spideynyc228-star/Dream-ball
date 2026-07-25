@@ -2,15 +2,15 @@
 {% block body_class %}app-page{% endblock %}
 {% block content %}
 <main class="app-shell activity-shell">
-  <section class="activity-hero">
-    <div><p class="eyebrow">MY ACTIVITY</p><h1>Your profile is being reviewed.</h1><p>Thanks, {{ user.first_name|default:user.username }}. The school team is checking your information before it becomes visible to other students.</p></div>
-    <div class="review-state"><span>●</span><b>In review</b><small>Submitted {{ profile.updated_at|date:"M j, Y" }}</small></div>
+  <section class="activity-hero school-life-hero">
+    <div><p class="eyebrow">AROUND OUR SCHOOL</p><h1>Small moments before a big night.</h1><p>Dream Ball is part of a school community that creates, rehearses and celebrates together. Here is a little look at what is happening around campus.</p></div>
+    <div class="review-state"><span>●</span><b>Application in review</b><small>We will let you know when it is ready.</small></div>
   </section>
-  <div class="activity-grid">
-    <section class="activity-card review-journey"><p class="eyebrow">REVIEW PROGRESS</p><ol><li class="complete"><span>✓</span><div><b>Profile submitted</b><small>Your details were sent securely.</small></div></li><li class="current"><span>2</span><div><b>Staff review</b><small>We check every profile for a respectful community.</small></div></li><li><span>3</span><div><b>Directory access</b><small>Available after approval.</small></div></li></ol></section>
-    <section class="activity-card profile-summary"><div class="section-heading-row"><div><p class="eyebrow">YOUR INFORMATION</p><h2>Submitted profile</h2></div><span class="status status-pending">In review</span></div><dl><div><dt>Grade</dt><dd>{{ profile.grade }}{{ profile.class_letter }}</dd></div><div><dt>Dance experience</dt><dd>{{ profile.dance_experience }}</dd></div><div><dt>Preparation time</dt><dd>{{ profile.preferred_rehearsal_time }}</dd></div><div><dt>Style</dt><dd>{{ profile.personality }}</dd></div></dl><p>{{ profile.bio }}</p></section>
-  </div>
-  <section class="activity-card activity-updates"><div class="section-heading-row"><div><p class="eyebrow">UPDATES</p><h2>Your activity</h2></div></div>{% if notifications %}<div class="notification-list">{% for item in notifications %}<div class="{% if not item.is_read %}unread-notification{% endif %}"><span>✦</span><p>{{ item.message }}<small>{{ item.created_at|timesince }} ago</small></p></div>{% endfor %}</div>{% else %}<div class="empty-panel">We will add an update here as soon as the review is complete.</div>{% endif %}</section>
-  <p class="activity-note">While your profile is being reviewed, partnership search and event planning are kept private. We will notify you as soon as access is ready.</p>
+
+  <section class="school-activities"><div class="section-heading-row"><div><p class="eyebrow">ON CAMPUS</p><h2>Coming up</h2></div><span class="section-caption">A calm look at school life</span></div><div class="school-activity-grid"><article class="school-activity-card activity-rehearsal"><div><span>THIS WEEK</span><h3>Dance rehearsal</h3><p>Students and teachers are shaping the first steps together after school.</p></div></article><article class="school-activity-card activity-studio"><div><span>BEHIND THE SCENES</span><h3>Creative studio</h3><p>Ideas for music, décor and the evening’s atmosphere are coming to life.</p></div></article><article class="school-activity-card activity-community"><div><span>COMMUNITY</span><h3>School gatherings</h3><p>Every event is built from the people and memories we share.</p></div></article></div></section>
+
+  <section class="past-proms"><div class="section-heading-row"><div><p class="eyebrow">FROM PREVIOUS YEARS</p><h2>Dream Ball memories</h2></div><p>Warm lights, thoughtful details and a full room of classmates — a little inspiration for the evening ahead.</p></div><div class="prom-memory-grid"><figure class="prom-memory memory-large"><img loading="lazy" src="https://images.unsplash.com/photo-1670529776286-f426fb7ba42c?auto=format&amp;fit=crop&amp;w=1100&amp;q=82" alt="Warmly lit school celebration venue"><figcaption>Evening lights in the Grand Hall</figcaption></figure><figure class="prom-memory"><img loading="lazy" src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&amp;fit=crop&amp;w=700&amp;q=82" alt="Tables prepared for a celebration"><figcaption>Details made with care</figcaption></figure><figure class="prom-memory"><img loading="lazy" src="https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&amp;fit=crop&amp;w=700&amp;q=82" alt="Celebration lighting in a venue"><figcaption>A night to remember</figcaption></figure></div>
+  </section>
+  <p class="activity-note">Your profile is currently with the school team for review. Partner search and the event space will open once it has been approved.</p>
 </main>
 {% endblock %}
