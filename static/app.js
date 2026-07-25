@@ -4,16 +4,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const editor = document.querySelector("[data-avatar-editor]");
     const preview = document.querySelector("#photo-preview");
     const placeholder = document.querySelector("#photo-placeholder");
-    const sliders = document.querySelector("[data-photo-sliders]");
     const cropModal = document.querySelector("[data-avatar-crop-modal]");
     const cropStage = document.querySelector("[data-avatar-crop-stage]");
     const cropPreview = document.querySelector("[data-avatar-crop-preview]");
     const cropZoom = document.querySelector("[data-avatar-crop-zoom]");
+    if (cropZoom) cropZoom.value = document.querySelector("#id_photo_scale")?.value || "100";
     document.querySelector("[data-avatar-select]")?.addEventListener("click", () => photoInput.click());
     const controls = {
       x: document.querySelector("[data-photo-x]"),
       y: document.querySelector("[data-photo-y]"),
-      scale: document.querySelector("[data-photo-scale]"),
+      scale: cropZoom,
       hiddenX: document.querySelector("#id_photo_position_x"),
       hiddenY: document.querySelector("#id_photo_position_y"),
       hiddenScale: document.querySelector("#id_photo_scale"),
@@ -34,11 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
       cropPreview.style.setProperty("--photo-scale", controls.scale.value);
     };
     controls.scale?.addEventListener("input", () => { updatePhotoFrame(); updateCropFrame(); });
-    cropZoom?.addEventListener("input", () => {
-      if (controls.scale) controls.scale.value = cropZoom.value;
-      updatePhotoFrame();
-      updateCropFrame();
-    });
     let dragState = null;
     cropStage?.addEventListener("pointerdown", (event) => {
       if (!cropPreview?.src || !controls.x || !controls.y) return;
@@ -89,7 +84,6 @@ document.addEventListener("DOMContentLoaded", () => {
         preview.hidden = false;
       }
       if (controls.scale && Number(controls.scale.value) <= 100) controls.scale.value = "125";
-      if (sliders) sliders.hidden = false;
       if (editor) editor.classList.add("has-photo");
       updatePhotoFrame();
       openCropModal();
