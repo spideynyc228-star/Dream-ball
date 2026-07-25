@@ -460,3 +460,24 @@ html { background:#f7f9fb; } body { background:linear-gradient(135deg,#fff 0%,#f
 .invitation-record > form:last-child { align-self:end; display:flex; align-items:center; min-height:38px; }
 .invitation-record > form:last-child .delete-code { min-height:38px; }
 @media (max-width:600px) { .code-edit-form .button { grid-row:auto; }.invitation-record > form:last-child { justify-self:start; } }
+
+/* Invitation cards: keep every editable control and both actions on one baseline. */
+.invitation-record { grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:9px; }
+.code-edit-form { grid-template-columns:minmax(150px,1fr) minmax(105px,.46fr) minmax(92px,.4fr) auto; grid-template-rows:auto; align-items:end; gap:8px; }
+.code-edit-form .code-assignment { grid-column:auto; grid-row:auto; min-height:38px; align-self:end; }
+.code-edit-form .button { grid-column:auto; grid-row:auto; min-height:38px; align-self:end; }
+.invitation-record > form:last-child { display:flex; align-items:end; align-self:end; min-height:38px; margin:0; }
+.invitation-record > form:last-child .delete-code { min-height:38px; }
+@media (max-width:700px) {
+  .invitation-list { grid-template-columns:1fr; }
+  .code-edit-form { grid-template-columns:minmax(0,1fr) minmax(105px,.52fr) auto; }
+  .code-edit-form .code-assignment { grid-column:1 / -1; }
+  .invitation-record { align-items:end; }
+}
+@media (max-width:500px) {
+  .invitation-record { grid-template-columns:1fr; }
+  .code-edit-form { grid-template-columns:1fr; }
+  .code-edit-form .code-assignment { grid-column:auto; }
+  .code-edit-form .button { width:100%; }
+  .invitation-record > form:last-child { justify-self:start; }
+}
