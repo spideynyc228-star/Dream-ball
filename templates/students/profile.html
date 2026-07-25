@@ -18,8 +18,8 @@
         <div class="avatar-editor-preview" aria-label="Profile photo preview">
           {% if profile.photo %}<img id="photo-preview" src="{{ profile.photo.url }}" alt="Your profile photo" style="--photo-x:{{ profile.photo_position_x }}%;--photo-y:{{ profile.photo_position_y }}%;--photo-scale:{{ profile.photo_scale }};">{% else %}<span id="photo-placeholder">+</span><img id="photo-preview" hidden alt="Selected profile photo">{% endif %}
           {{ form.photo }}
-          <button class="avatar-edit-button" type="button" data-avatar-select>{% if profile.photo %}Edit{% else %}Add photo{% endif %}</button>
         </div>
+        <button class="avatar-edit-button" type="button" data-avatar-select>{% if profile.photo %}Edit photo{% else %}Add photo{% endif %}</button>
         <div class="avatar-editor-controls">
           <div><p class="field-label">Profile photo</p><b>Your avatar</b><small>Use Edit to add or replace a photo. Its position is adjusted in the crop editor.</small></div>
           <input type="hidden" value="{{ form.photo_position_x.value|default:50 }}" data-photo-x>
@@ -63,7 +63,7 @@
       <img data-avatar-crop-preview alt="Crop preview">
       <span class="avatar-crop-guide" aria-hidden="true"></span>
     </div>
-    <label class="avatar-crop-zoom">Zoom <input type="range" min="100" max="160" value="100" data-avatar-crop-zoom></label>
+    <label class="avatar-crop-zoom">Zoom <input type="range" min="100" max="220" value="100" data-avatar-crop-zoom></label>
     <div class="avatar-crop-actions"><button type="button" class="button button-secondary" data-avatar-crop-cancel>Cancel</button><button type="button" class="button button-primary" data-avatar-crop-done>Done</button></div>
   </div>
 </div>

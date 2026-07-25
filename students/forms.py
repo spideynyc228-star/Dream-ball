@@ -71,7 +71,7 @@ class ProfileForm(forms.ModelForm):
         return min(100, max(0, self.cleaned_data["photo_position_y"]))
 
     def clean_photo_scale(self):
-        return min(160, max(100, self.cleaned_data["photo_scale"]))
+        return min(220, max(100, self.cleaned_data["photo_scale"]))
 
     def clean(self):
         cleaned = super().clean()
