@@ -45,14 +45,22 @@ def dashboard(request):
     })
 @admin_required
 def review_profile(request,pk,status):
-    if request.method != "POST" or status not in {Profile.Status.APPROVED, Profile.Status.REJECTED}: return redirect("moderation:dashboard")
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
+    if request.method != "POST" or status not in {Profile.Status.APPROVED, Profile.Status.REJECTED}:
+        return JsonResponse({"ok": False, "message": "This profile action is not available."}, status=405) if is_async else redirect("moderation:dashboard")
     profile=get_object_or_404(Profile,pk=pk)
     if status == Profile.Status.APPROVED and not profile.is_complete:
-        messages.error(request, "This profile cannot be approved yet because required answers are missing.")
+        message = "This profile cannot be approved yet because required answers are missing."
+        if is_async:
+            return JsonResponse({"ok": False, "message": message}, status=400)
+        messages.error(request, message)
         return redirect("moderation:dashboard")
+    previous_status = profile.status
     profile.status=status; profile.moderation_note=request.POST.get("note",""); profile.save()
     message = "Your profile was approved. You can now browse the student directory." if status == Profile.Status.APPROVED else "Your profile needs an update before approval. Please read the moderator note."
     Notification.objects.create(user=profile.user, message=message)
+    if is_async:
+        return JsonResponse({"ok": True, "message": "Profile approved." if status == Profile.Status.APPROVED else "Changes requested.", "status": status, "previous_status": previous_status, "status_label": profile.get_status_display()})
     return redirect("moderation:dashboard")
 @admin_required
 def review_report(request,pk):
@@ -70,10 +78,16 @@ def delete_report(request, pk):
 
 @admin_required
 def delete_profile(request, pk):
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method == "POST":
         profile = get_object_or_404(Profile, pk=pk)
+        previous_status = profile.status
         profile.user.delete()
+        if is_async:
+            return JsonResponse({"ok": True, "message": "User profile deleted.", "deleted": True, "previous_status": previous_status})
         messages.success(request, "Student profile and account deleted.")
+    elif is_async:
+        return JsonResponse({"ok": False, "message": "This profile action is not available."}, status=405)
     return redirect("moderation:dashboard")
 
 

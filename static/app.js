@@ -318,4 +318,52 @@ document.addEventListener("DOMContentLoaded", () => {
       if (button) button.disabled = false;
     }
   });
+
+  const updateProfileTabCount = (status, change, updateAll = false) => {
+    if (!status || status === "all") return;
+    const tab = document.querySelector(`.profile-tabs a[href*="status=${status}"] b`);
+    if (!tab) return;
+    const current = Number.parseInt(tab.textContent, 10);
+    if (Number.isFinite(current)) tab.textContent = Math.max(0, current + change);
+    const allTab = document.querySelector('.profile-tabs a[href*="status=all"] b');
+    if (allTab && updateAll) {
+      const allCurrent = Number.parseInt(allTab.textContent, 10);
+      if (Number.isFinite(allCurrent)) allTab.textContent = Math.max(0, allCurrent + change);
+    }
+  };
+  document.addEventListener("submit", async (event) => {
+    const form = event.target;
+    if (!form.matches(".admin-page .moderation-actions form")) return;
+    if (event.defaultPrevented) return;
+    event.preventDefault();
+    const button = form.querySelector('[type="submit"]');
+    if (button) button.disabled = true;
+    try {
+      const response = await fetch(form.action, { method: "POST", body: new FormData(form), headers: { "X-Requested-With": "XMLHttpRequest" } });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.message || "Could not update this profile.");
+      const record = form.closest(".admin-record");
+      const selectedStatus = new URL(window.location.href).searchParams.get("status") || "pending";
+      if (data.deleted) {
+        record?.remove();
+        updateProfileTabCount(data.previous_status, -1, true);
+      } else {
+        const status = record?.querySelector(".status");
+        if (status) {
+          status.className = `status status-${data.status}`;
+          status.textContent = data.status_label;
+        }
+        if (data.previous_status !== data.status) {
+          updateProfileTabCount(data.previous_status, -1);
+          updateProfileTabCount(data.status, 1);
+        }
+        if (selectedStatus !== "all" && selectedStatus !== data.status) record?.remove();
+      }
+      showAdminNotice(data.message);
+    } catch (error) {
+      showAdminNotice(error.message || "Could not update this profile.", true);
+    } finally {
+      if (button) button.disabled = false;
+    }
+  });
 });
