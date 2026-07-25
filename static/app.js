@@ -23,9 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
       preview.style.setProperty("--photo-x", `${controls.x.value}%`);
       preview.style.setProperty("--photo-y", `${controls.y.value}%`);
       preview.style.setProperty("--photo-scale", controls.scale.value);
-      if (controls.hiddenX) controls.hiddenX.value = controls.x.value;
-      if (controls.hiddenY) controls.hiddenY.value = controls.y.value;
-      if (controls.hiddenScale) controls.hiddenScale.value = controls.scale.value;
+      // The crop can move in fractions of a pixel, while Django stores these
+      // framing values as whole numbers. Keep the visual movement smooth but
+      // submit valid, rounded integer values.
+      const wholeNumber = (value) => Math.round(Number(value) || 0);
+      if (controls.hiddenX) controls.hiddenX.value = wholeNumber(controls.x.value);
+      if (controls.hiddenY) controls.hiddenY.value = wholeNumber(controls.y.value);
+      if (controls.hiddenScale) controls.hiddenScale.value = wholeNumber(controls.scale.value);
     };
     const updateCropFrame = () => {
       if (!cropPreview || !controls.x || !controls.y || !controls.scale) return;
