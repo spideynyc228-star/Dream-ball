@@ -1,5 +1,72 @@
 {% extends "base.html" %}
 {% block body_class %}form-page{% endblock %}
 {% block content %}
-<main class="form-shell"><section class="profile-form-card"><div class="form-heading"><div><p class="eyebrow">YOUR STUDENT PROFILE</p><h1>Introduce yourself.</h1><p class="muted">This is your event profile. It will be reviewed by staff before approved students can see it.</p></div><div class="privacy-badge"><b>● {{ profile.get_status_display }}</b><br>Updates return to review</div></div>{% if profile.moderation_note %}<p class="moderation-warning">Moderator note: {{ profile.moderation_note }}</p>{% endif %}<form class="stack-form" method="post" enctype="multipart/form-data">{% csrf_token %}<div class="form-grid">{% for field in form %}{% if field.name != 'bio' and field.name != 'photo' and field.name != 'agreed_to_rules' %}<label>{{ field.label }}{{ field }}{% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>{% endif %}{% endfor %}</div>{% for field in form %}{% if field.name == 'bio' %}<label>{{ field.label }}{{ field }}{% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>{% elif field.name == 'photo' %}<label>Optional profile photo{{ field }}<small class="field-help">A clear, appropriate photo helps classmates recognise you.</small></label>{% elif field.name == 'agreed_to_rules' %}<label class="agreement">{{ field }}<span>I agree to the community rules, privacy expectations and respectful event conduct.</span>{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>{% endif %}{% endfor %}<button class="button button-primary" type="submit">Submit for moderation <span>→</span></button></form></section></main>
+<main class="form-shell">
+  <section class="profile-form-card">
+    <div class="form-heading">
+      <div>
+        <p class="eyebrow">{% if has_saved_profile %}PROFILE SETTINGS{% else %}YOUR STUDENT PROFILE{% endif %}</p>
+        <h1>{% if has_saved_profile %}Your saved profile.{% else %}Introduce yourself.{% endif %}</h1>
+        <p class="muted">{% if has_saved_profile %}Your submitted answers are saved below. Change only what you need; any update will be reviewed again before it becomes visible.{% else %}Complete these details once so the school team can review your profile.{% endif %}</p>
+      </div>
+      <div class="privacy-badge"><b>● {{ profile.get_status_display }}</b><br>{% if has_saved_profile %}Saved answers stay here{% else %}Complete required details{% endif %}</div>
+    </div>
+    {% if profile.moderation_note %}<p class="moderation-warning">Moderator note: {{ profile.moderation_note }}</p>{% endif %}
+    <form class="stack-form" method="post" enctype="multipart/form-data" data-form-recovery="profile">
+      {% csrf_token %}
+      <section class="avatar-editor" data-avatar-editor>
+        <div class="avatar-editor-preview" aria-label="Profile photo preview">
+          {% if profile.photo %}<img id="photo-preview" src="{{ profile.photo.url }}" alt="Your profile photo" style="--photo-x:{{ profile.photo_position_x }}%;--photo-y:{{ profile.photo_position_y }}%;--photo-scale:{{ profile.photo_scale }};">{% else %}<span id="photo-placeholder">+</span><img id="photo-preview" hidden alt="Selected profile photo">{% endif %}
+          {{ form.photo }}
+        </div>
+        <button class="avatar-edit-button" type="button" data-avatar-select>{% if profile.photo %}Edit photo{% else %}Add photo{% endif %}</button>
+        <div class="avatar-editor-controls">
+          <div><p class="field-label">Profile photo</p><b>Your avatar</b><small>Use Edit to add or replace a photo. Its position is adjusted in the crop editor.</small></div>
+          <input type="hidden" value="{{ form.photo_position_x.value|default:50 }}" data-photo-x>
+          <input type="hidden" value="{{ form.photo_position_y.value|default:50 }}" data-photo-y>
+          {{ form.photo_position_x }}{{ form.photo_position_y }}{{ form.photo_scale }}
+        </div>
+      </section>
+      <div class="form-grid">
+        <label>{{ form.nickname.label }}{{ form.nickname }}{% if form.nickname.help_text %}<small class="field-help">{{ form.nickname.help_text }}</small>{% endif %}{% for error in form.nickname.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
+        {% for field in form %}
+          {% if field.name != 'nickname' and field.name != 'bio' and field.name != 'photo' and field.name != 'photo_position_x' and field.name != 'photo_position_y' and field.name != 'photo_scale' and field.name != 'agreed_to_rules' %}
+            {% if field.name == 'preferred_rehearsal_time' %}
+              <fieldset class="rehearsal-time-field">
+                <legend>{{ field.label }}</legend>
+                {{ field }}
+                {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}
+              </fieldset>
+            {% else %}
+              <label>{{ field.label }}{{ field }}{% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% for field in form %}
+        {% if field.name == 'bio' %}
+          <label>{{ field.label }}{{ field }}{% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
+        {% elif field.name == 'agreed_to_rules' %}
+          <label class="agreement">{{ field }}<span>I agree to the <a href="{% url 'safety:index' %}" target="_blank" rel="noopener">site policy and community rules</a>, privacy expectations and respectful event conduct.</span>{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
+        {% endif %}
+      {% endfor %}
+      <p class="form-submit-state" data-profile-submit-state aria-live="polite"></p>
+      <button class="button button-primary" type="submit">{% if has_saved_profile %}Save changes and resubmit{% else %}Submit for moderation{% endif %} <span>→</span></button>
+    </form>
+  </section>
+</main>
+<div class="avatar-crop-modal" data-avatar-crop-modal hidden>
+  <div class="avatar-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="avatar-crop-title">
+    <p class="eyebrow">PHOTO FRAMING</p>
+    <h2 id="avatar-crop-title">Position your photo</h2>
+    <p>Drag your photo inside the dotted square. This is exactly the framing that will be saved.</p>
+    <div class="avatar-crop-stage" data-avatar-crop-stage tabindex="0">
+      <img data-avatar-crop-preview alt="Crop preview">
+      <span class="avatar-crop-guide" aria-hidden="true"></span>
+    </div>
+    <label class="avatar-crop-zoom">Zoom <input type="range" min="100" max="220" value="100" data-avatar-crop-zoom></label>
+    <div class="avatar-crop-actions"><button type="button" class="button button-secondary" data-avatar-crop-cancel>Cancel</button><button type="button" class="button button-primary" data-avatar-crop-done>Done</button></div>
+  </div>
+</div>
 {% endblock %}

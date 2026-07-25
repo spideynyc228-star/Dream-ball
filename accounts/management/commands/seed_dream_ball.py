@@ -17,12 +17,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         admin, _ = User.objects.get_or_create(username="dream_admin", defaults={"email": "admin@dreamball.local", "first_name": "Avery", "last_name": "Morgan", "role": User.Role.ADMIN, "is_staff": True})
         admin.role = User.Role.ADMIN; admin.is_staff = True; admin.set_password("DreamBall2026!"); admin.save()
-        moderator, _ = User.objects.get_or_create(username="dream_moderator", defaults={"email": "moderator@dreamball.local", "first_name": "Jordan", "last_name": "Lee", "role": User.Role.MODERATOR})
-        moderator.role = User.Role.MODERATOR; moderator.set_password("DreamBall2026!"); moderator.save()
-        teacher, _ = User.objects.get_or_create(username="dream_teacher", defaults={"email": "teacher@dreamball.local", "first_name": "Casey", "last_name": "Wilson", "role": User.Role.TEACHER})
-        teacher.role = User.Role.TEACHER; teacher.set_password("DreamBall2026!"); teacher.save()
+        moderator, _ = User.objects.get_or_create(username="dream_moderator", defaults={"email": "moderator@dreamball.local", "first_name": "Jordan", "last_name": "Lee", "role": User.Role.USER})
+        moderator.role = User.Role.USER; moderator.set_password("DreamBall2026!"); moderator.save()
+        teacher, _ = User.objects.get_or_create(username="dream_teacher", defaults={"email": "teacher@dreamball.local", "first_name": "Casey", "last_name": "Wilson", "role": User.Role.USER})
+        teacher.role = User.Role.USER; teacher.set_password("DreamBall2026!"); teacher.save()
         for number in range(1, 11):
-            InvitationCode.objects.get_or_create(code=f"DREAM-2026-{number:02}", defaults={"role": User.Role.STUDENT})
+            InvitationCode.objects.get_or_create(code=f"DREAM-2026-{number:02}", defaults={"role": User.Role.USER})
 
         event, _ = Event.objects.get_or_create(title="Dream Ball 2026", defaults={
             "description": "A school celebration created for the graduating class - with music, thoughtful traditions and a beautiful shared evening.",
@@ -39,11 +39,12 @@ class Command(BaseCommand):
         people = [("Amelia", "Reed"), ("Noah", "Kim"), ("Sofia", "Patel"), ("Ethan", "Brooks"), ("Olivia", "Nguyen"), ("Lucas", "Bennett"), ("Maya", "Carter"), ("Leo", "Davis"), ("Emma", "Rivera"), ("Daniel", "Foster"), ("Grace", "Murphy"), ("Alex", "Price"), ("Lily", "Ward"), ("Max", "Turner"), ("Ella", "Gray"), ("Ryan", "Cole"), ("Chloe", "Wright"), ("Sam", "Parker"), ("Ava", "Hughes"), ("Ben", "Kelly")]
         students = []
         for index, (first, last) in enumerate(people, start=1):
-            user, _ = User.objects.get_or_create(username=f"student_{index:02}", defaults={"email": f"student{index:02}@dreamball.local", "first_name": first, "last_name": last, "role": User.Role.STUDENT})
-            user.first_name, user.last_name, user.role = first, last, User.Role.STUDENT; user.set_password("DreamBall2026!"); user.save()
+            user, _ = User.objects.get_or_create(username=f"student_{index:02}", defaults={"email": f"student{index:02}@dreamball.local", "first_name": first, "last_name": last, "role": User.Role.USER})
+            user.first_name, user.last_name, user.role = first, last, User.Role.USER; user.set_password("DreamBall2026!"); user.save()
             status = Profile.Status.PENDING if index in {18, 19} else Profile.Status.REJECTED if index == 20 else Profile.Status.APPROVED
             profile, _ = Profile.objects.get_or_create(user=user)
             profile.grade = "11"; profile.class_letter = chr(64 + ((index - 1) % 4) + 1); profile.height = 158 + index
+            profile.gender = "male" if first in {"Noah", "Ethan", "Lucas", "Leo", "Daniel", "Max", "Ryan", "Ben", "Alex", "Sam"} else "female"
             profile.bio = "Looking forward to a kind, memorable school celebration and preparing thoughtfully with the community."
             profile.dance_experience = ["Beginner", "Some experience", "Intermediate", "Experienced"][index % 4]
             profile.personality = ["Calm", "Creative", "Thoughtful", "Outgoing"][index % 4]

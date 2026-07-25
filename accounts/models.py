@@ -2,17 +2,17 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 class User(AbstractUser):
-    class Role(models.TextChoices): STUDENT="student", "Student"; MODERATOR="moderator", "Moderator"; TEACHER="teacher", "Teacher"; ADMIN="admin", "Administrator"
-    role = models.CharField(max_length=12, choices=Role.choices, default=Role.STUDENT)
+    class Role(models.TextChoices): USER="user", "User"; ADMIN="admin", "Administrator"
+    role = models.CharField(max_length=12, choices=Role.choices, default=Role.USER)
     email = models.EmailField(unique=True)
     REQUIRED_FIELDS = ["email"]
 
     @property
-    def is_staff_member(self): return self.role in {self.Role.MODERATOR, self.Role.TEACHER, self.Role.ADMIN} or self.is_superuser
+    def is_staff_member(self): return self.role == self.Role.ADMIN or self.is_superuser
 
 class InvitationCode(models.Model):
     code = models.CharField(max_length=32, unique=True)
-    role = models.CharField(max_length=12, choices=User.Role.choices, default=User.Role.STUDENT)
+    role = models.CharField(max_length=12, choices=User.Role.choices, default=User.Role.USER)
     used_by = models.OneToOneField(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="invitation")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

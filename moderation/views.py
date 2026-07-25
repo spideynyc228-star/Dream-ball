@@ -3,17 +3,20 @@ import secrets
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from students.models import Profile, Partnership
 from accounts.models import InvitationCode
 from events.models import Event
 from reports.models import Report
 from notifications.models import Notification
-staff_required=user_passes_test(lambda u:u.is_authenticated and u.is_staff_member)
-moderator_required = user_passes_test(lambda u: u.is_authenticated and u.role in {"moderator", "admin"})
-admin_required = user_passes_test(lambda u: u.is_authenticated and u.role == "admin")
-@staff_required
+admin_required = user_passes_test(lambda u: u.is_authenticated and (u.role == "admin" or u.is_superuser))
+@admin_required
 def dashboard(request):
+    section = request.GET.get("section", "profiles")
+    if section not in {"codes", "profiles", "reports", "partnerships"}:
+        section = "profiles"
     status = request.GET.get("status", "pending")
     search = request.GET.get("q", "").strip()
     sort = request.GET.get("sort", "-updated_at")
@@ -27,64 +30,110 @@ def dashboard(request):
         profiles = profiles.filter(Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search) | Q(user__username__icontains=search))
     reports = Report.objects.select_related("profile__user", "reporter").order_by("-created_at")
     codes = InvitationCode.objects.select_related("used_by").order_by("-created_at")
+    available_codes = codes.filter(is_active=True, used_by__isnull=True)
+    used_codes = codes.exclude(is_active=True, used_by__isnull=True)
     return render(request,"moderation/dashboard.html",{
-        "profiles": profiles.order_by(sort), "selected_status": status, "student_search": search,
+        "active_section": section, "profiles": profiles.order_by(sort), "selected_status": status, "student_search": search,
         "pending":Profile.objects.filter(status="pending").count(),
+        "approved_profiles_count": Profile.objects.filter(status=Profile.Status.APPROVED).count(),
+        "rejected_profiles_count": Profile.objects.filter(status=Profile.Status.REJECTED).count(),
+        "all_profiles_count": Profile.objects.count(),
         "reports": reports,
         "approved_count":Profile.objects.filter(status="approved").count(),
-        "codes_count":InvitationCode.objects.filter(is_active=True, used_by__isnull=True).count(), "codes":codes[:30],
+        "codes_count": available_codes.count(),
+        "available_codes": available_codes[:30],
+        "used_codes": used_codes[:30],
         "partnerships":Partnership.objects.select_related("student_one", "student_two").order_by("-created_at")[:8],
         "events":Event.objects.order_by("date")[:4],
     })
-@staff_required
-@moderator_required
+@admin_required
 def review_profile(request,pk,status):
-    if request.method != "POST" or status not in {Profile.Status.APPROVED, Profile.Status.REJECTED}: return redirect("moderation:dashboard")
-    profile=get_object_or_404(Profile,pk=pk); profile.status=status; profile.moderation_note=request.POST.get("note",""); profile.save()
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
+    if request.method != "POST" or status not in {Profile.Status.APPROVED, Profile.Status.REJECTED}:
+        return JsonResponse({"ok": False, "message": "This profile action is not available."}, status=405) if is_async else redirect("moderation:dashboard")
+    profile=get_object_or_404(Profile,pk=pk)
+    note = request.POST.get("note", "").strip()
+    if status == Profile.Status.REJECTED and not note:
+        message = "Write what needs changing, for example: Nickname — please choose a school-appropriate name."
+        if is_async:
+            return JsonResponse({"ok": False, "message": message}, status=400)
+        messages.error(request, message)
+        return redirect("moderation:dashboard")
+    if status == Profile.Status.APPROVED and not profile.is_complete:
+        message = "This profile cannot be approved yet because required answers are missing."
+        if is_async:
+            return JsonResponse({"ok": False, "message": message}, status=400)
+        messages.error(request, message)
+        return redirect("moderation:dashboard")
+    previous_status = profile.status
+    profile.status=status; profile.moderation_note=note; profile.save()
     message = "Your profile was approved. You can now browse the student directory." if status == Profile.Status.APPROVED else "Your profile needs an update before approval. Please read the moderator note."
     Notification.objects.create(user=profile.user, message=message)
+    if is_async:
+        return JsonResponse({"ok": True, "message": "Profile approved." if status == Profile.Status.APPROVED else "Changes requested.", "status": status, "previous_status": previous_status, "status_label": profile.get_status_display()})
     return redirect("moderation:dashboard")
-@staff_required
-@moderator_required
+@admin_required
 def review_report(request,pk):
-    if request.method != "POST": return redirect("moderation:dashboard")
-    report=get_object_or_404(Report,pk=pk); report.status=request.POST.get("status", Report.Status.RESOLVED); report.reviewed=report.status == Report.Status.RESOLVED; report.moderator_note=request.POST.get("note", ""); report.save(); return redirect("moderation:dashboard")
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "message": "This report action is not available."}, status=405) if is_async else redirect(f"{reverse('moderation:dashboard')}?section=reports")
+    report=get_object_or_404(Report,pk=pk); report.status=request.POST.get("status", Report.Status.RESOLVED); report.reviewed=report.status == Report.Status.RESOLVED; report.moderator_note=request.POST.get("note", ""); report.save()
+    if is_async:
+        return JsonResponse({"ok": True, "message": "Report marked as resolved.", "status": report.status, "status_label": report.get_status_display()})
+    return redirect(f"{reverse('moderation:dashboard')}?section=reports")
 
 
-@moderator_required
+@admin_required
 def delete_report(request, pk):
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method == "POST":
         get_object_or_404(Report, pk=pk).delete()
+        if is_async:
+            return JsonResponse({"ok": True, "message": "Report deleted.", "deleted": True})
         messages.success(request, "Report deleted.")
-    return redirect("moderation:dashboard")
+    elif is_async:
+        return JsonResponse({"ok": False, "message": "This report action is not available."}, status=405)
+    return redirect(f"{reverse('moderation:dashboard')}?section=reports")
 
 
-@moderator_required
+@admin_required
 def delete_profile(request, pk):
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method == "POST":
         profile = get_object_or_404(Profile, pk=pk)
+        previous_status = profile.status
         profile.user.delete()
+        if is_async:
+            return JsonResponse({"ok": True, "message": "User profile deleted.", "deleted": True, "previous_status": previous_status})
         messages.success(request, "Student profile and account deleted.")
+    elif is_async:
+        return JsonResponse({"ok": False, "message": "This profile action is not available."}, status=405)
     return redirect("moderation:dashboard")
 
 
 @admin_required
 def create_invitation(request):
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method == "POST":
         code = request.POST.get("code", "").strip().upper() or secrets.token_urlsafe(7).upper()
-        role = request.POST.get("role", "student")
-        if role not in {"student", "moderator", "teacher", "admin"}:
-            role = "student"
+        role = request.POST.get("role", "user")
+        if role not in {"user", "admin"}:
+            role = "user"
         if InvitationCode.objects.filter(code=code).exists():
             messages.error(request, "That invitation code already exists.")
         else:
-            InvitationCode.objects.create(code=code, role=role)
+            invitation = InvitationCode.objects.create(code=code, role=role)
+            if is_async:
+                return JsonResponse({"ok": True, "message": f"Invitation code {code} is ready to share.", "invitation": {"id": invitation.pk, "code": invitation.code, "role": invitation.role, "update_url": reverse("moderation:update_invitation", args=[invitation.pk]), "delete_url": reverse("moderation:delete_invitation", args=[invitation.pk])}})
             messages.success(request, f"Invitation code {code} is ready to share.")
-    return redirect("moderation:dashboard")
+        if is_async:
+            return JsonResponse({"ok": False, "message": "That invitation code already exists."}, status=400)
+    return redirect(f"{reverse('moderation:dashboard')}?section=codes")
 
 
 @admin_required
 def update_invitation(request, pk):
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method == "POST":
         invitation = get_object_or_404(InvitationCode, pk=pk)
         code = request.POST.get("code", "").strip().upper()
@@ -93,20 +142,27 @@ def update_invitation(request, pk):
             messages.error(request, "Invitation code cannot be empty.")
         elif InvitationCode.objects.exclude(pk=invitation.pk).filter(code=code).exists():
             messages.error(request, "That invitation code already exists.")
-        elif role not in {"student", "moderator", "teacher", "admin"}:
+        elif role not in {"user", "admin"}:
             messages.error(request, "Choose a valid account role.")
         else:
             invitation.code = code
             invitation.role = role
             invitation.save(update_fields=["code", "role"])
+            if is_async:
+                return JsonResponse({"ok": True, "message": "Invitation code updated."})
             messages.success(request, "Invitation code updated.")
-    return redirect("moderation:dashboard")
+        if is_async:
+            return JsonResponse({"ok": False, "message": "Check the invitation code and role, then try again."}, status=400)
+    return redirect(f"{reverse('moderation:dashboard')}?section=codes")
 
 
 @admin_required
 def delete_invitation(request, pk):
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method == "POST":
         invitation = get_object_or_404(InvitationCode, pk=pk)
         invitation.delete()
+        if is_async:
+            return JsonResponse({"ok": True, "message": "Invitation code deleted. Existing accounts stay active."})
         messages.success(request, "Invitation code deleted. Existing accounts stay active.")
-    return redirect("moderation:dashboard")
+    return redirect(f"{reverse('moderation:dashboard')}?section=codes")

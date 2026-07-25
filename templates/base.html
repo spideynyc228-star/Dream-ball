@@ -6,24 +6,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Dream Ball is a secure, invitation-only platform for school event coordination.">
   <title>{% block title %}Dream Ball · Safe Student Event Coordination{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'style.css' %}">
-  <script src="{% static 'app.js' %}" defer></script>
+  <link rel="stylesheet" href="{% static 'style.css' %}?v=avatar-frame-match-16">
+<script src="{% static 'app.js' %}?v=profile-save-20" defer></script>
 </head>
 <body class="{% block body_class %}{% endblock %}">
   {% block header %}
     {% if user.is_authenticated %}
       <header class="site-header">
-        <a class="brand" href="{% if user.role == 'student' %}{% url 'dashboard:home' %}{% else %}{% url 'moderation:dashboard' %}{% endif %}"><span>✦</span> DREAM BALL</a>
-        {% if user.role == 'student' %}
+        <a class="brand" href="{% if user.role == 'user' %}{% if user.profile.status == 'approved' %}{% url 'students:browse' %}{% else %}{% url 'dashboard:home' %}{% endif %}{% else %}{% url 'moderation:dashboard' %}{% endif %}"><span>✦</span> DREAM BALL</a>
+        {% if user.role == 'user' %}
           <nav aria-label="Primary navigation">
-            <a href="{% url 'dashboard:home' %}">{% if user.profile.status == 'approved' %}Dashboard{% else %}School life{% endif %}</a>{% if user.profile.status == 'approved' %}<a href="{% url 'students:browse' %}">Students</a><a href="{% url 'students:requests' %}">Requests</a><a href="{% url 'students:partnership' %}">Partnership</a><a href="{% url 'dashboard:event' %}">Event</a>{% endif %}
+            {% if user.profile.status == 'approved' %}<a href="{% url 'students:browse' %}">Students</a><a href="{% url 'students:requests' %}">Requests</a><a href="{% url 'students:partnership' %}">Partnership</a><a href="{% url 'dashboard:event' %}">Event</a>{% else %}<a href="{% url 'dashboard:home' %}">School life</a>{% endif %}
           </nav>
         {% else %}
           <nav aria-label="Staff navigation"><a href="{% url 'moderation:dashboard' %}">Operations console</a></nav>
         {% endif %}
         <div class="account-menu">
-          {% if user.role == 'student' %}<div class="notification-menu" data-notification-menu><button class="notification-button" type="button" data-notification-toggle aria-expanded="false" aria-controls="notification-popover" aria-label="View notifications{% if unread_notification_count %}, {{ unread_notification_count }} unread{% endif %}"><span class="notification-icon" aria-hidden="true">&#128276;</span><span class="notification-label">Updates</span>{% if unread_notification_count %}<b>{{ unread_notification_count }}</b>{% endif %}</button><section class="notification-popover" id="notification-popover" data-notification-popover hidden><header><div><span class="eyebrow">UPDATES</span><h2>Notifications</h2></div>{% if unread_notification_count %}<span class="notification-count">{{ unread_notification_count }} new</span>{% endif %}</header><div class="notification-preview-list">{% for item in notification_preview %}<article{% if not item.is_read %} class="is-unread"{% endif %}><span>✦</span><p>{{ item.message }}<small>{{ item.created_at|timesince }} ago</small></p></article>{% empty %}<p class="notification-empty">Nothing new right now.</p>{% endfor %}</div>{% if unread_notification_count %}<form method="post" action="{% url 'dashboard:mark_notifications_read' %}">{% csrf_token %}<button class="notification-read-button" type="submit">Mark all as read</button></form>{% endif %}</section></div>{% endif %}
-          {% if user.role == 'student' and user.profile.status == 'approved' %}<a class="avatar avatar-small" href="{% url 'students:profile' %}" aria-label="Edit your profile">{{ user.first_name|first }}{{ user.last_name|first }}</a>{% endif %}
+          {% if user.role == 'user' %}<div class="notification-menu" data-notification-menu><button class="notification-button" type="button" data-notification-toggle aria-expanded="false" aria-controls="notification-popover" aria-label="View notifications{% if unread_notification_count %}, {{ unread_notification_count }} unread{% endif %}"><span class="notification-icon" aria-hidden="true">&#128276;</span><span class="notification-label">Updates</span>{% if unread_notification_count %}<b>{{ unread_notification_count }}</b>{% endif %}</button><section class="notification-popover" id="notification-popover" data-notification-popover hidden><header><div><span class="eyebrow">UPDATES</span><h2>Notifications</h2></div>{% if unread_notification_count %}<span class="notification-count">{{ unread_notification_count }} new</span>{% endif %}</header><div class="notification-preview-list">{% for item in notification_preview %}<article{% if not item.is_read %} class="is-unread"{% endif %}><span>✦</span><p>{{ item.message }}<small>{{ item.created_at|timesince }} ago</small></p></article>{% empty %}<p class="notification-empty">Nothing new right now.</p>{% endfor %}</div>{% if unread_notification_count %}<form method="post" action="{% url 'dashboard:mark_notifications_read' %}">{% csrf_token %}<button class="notification-read-button" type="submit">Mark all as read</button></form>{% endif %}</section></div>{% endif %}
+          {% if user.role == 'user' and user.profile.status == 'approved' %}<a class="avatar avatar-small" href="{% url 'students:profile' %}" aria-label="Edit profile for @{{ user.username }}" title="@{{ user.username }}">{{ user.username|first|upper }}</a>{% endif %}
           <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="text-action" type="submit">Log out</button></form>
         </div>
       </header>
@@ -35,6 +35,7 @@
       {% for message in messages %}<div class="flash flash-{{ message.tags|default:'info' }}"><span>✦</span>{{ message }}</div>{% endfor %}
     </div>
   {% endif %}
+  <div class="confirm-modal" data-confirm-modal hidden><div class="confirm-modal-backdrop" data-confirm-cancel></div><section class="confirm-modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title"><p class="eyebrow">CONFIRM ACTION</p><h2 id="confirm-modal-title">Delete this item?</h2><p data-confirm-message>This action cannot be undone.</p><div class="confirm-modal-actions"><button class="button button-secondary" type="button" data-confirm-cancel>Cancel</button><button class="button button-danger-soft" type="button" data-confirm-accept>Delete</button></div></section></div>
   {% block content %}{% endblock %}
 </body>
 </html>
