@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block body_class %}content-page{% endblock %}
+{% block content %}
+<main class="error-page"><p class="eyebrow">FORM NEEDS A REFRESH</p><h1>Let’s safely reopen your form.</h1><p>Your page was open for too long or was loaded before the current session. No information was saved. Open a fresh registration form and try again.</p><a class="button button-primary" href="{% url 'accounts:register' %}">Open registration form</a></main>
+{% endblock %}

@@ -3,8 +3,10 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView, LogoutView
 from django.shortcuts import redirect, render
+from django.views.decorators.csrf import ensure_csrf_cookie
 from .forms import InviteRegistrationForm
 
+@ensure_csrf_cookie
 def register(request):
     form = InviteRegistrationForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
