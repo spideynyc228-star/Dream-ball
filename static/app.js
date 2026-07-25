@@ -87,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
         preview.src = URL.createObjectURL(file);
         preview.hidden = false;
       }
+      if (controls.scale && Number(controls.scale.value) <= 100) controls.scale.value = "125";
       if (sliders) sliders.hidden = false;
       if (editor) editor.classList.add("has-photo");
       updatePhotoFrame();
