@@ -52,6 +52,13 @@ def review_profile(request,pk,status):
     if request.method != "POST" or status not in {Profile.Status.APPROVED, Profile.Status.REJECTED}:
         return JsonResponse({"ok": False, "message": "This profile action is not available."}, status=405) if is_async else redirect("moderation:dashboard")
     profile=get_object_or_404(Profile,pk=pk)
+    note = request.POST.get("note", "").strip()
+    if status == Profile.Status.REJECTED and not note:
+        message = "Write what needs changing, for example: Nickname — please choose a school-appropriate name."
+        if is_async:
+            return JsonResponse({"ok": False, "message": message}, status=400)
+        messages.error(request, message)
+        return redirect("moderation:dashboard")
     if status == Profile.Status.APPROVED and not profile.is_complete:
         message = "This profile cannot be approved yet because required answers are missing."
         if is_async:
@@ -59,7 +66,7 @@ def review_profile(request,pk,status):
         messages.error(request, message)
         return redirect("moderation:dashboard")
     previous_status = profile.status
-    profile.status=status; profile.moderation_note=request.POST.get("note",""); profile.save()
+    profile.status=status; profile.moderation_note=note; profile.save()
     message = "Your profile was approved. You can now browse the student directory." if status == Profile.Status.APPROVED else "Your profile needs an update before approval. Please read the moderator note."
     Notification.objects.create(user=profile.user, message=message)
     if is_async:
