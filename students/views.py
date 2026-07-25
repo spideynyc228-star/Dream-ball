@@ -44,6 +44,12 @@ def profile(request):
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse({"ok": True, "redirect": reverse("dashboard:home")})
         return redirect("dashboard:home")
+    if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
+        errors = [message for field_errors in form.errors.values() for message in field_errors]
+        return JsonResponse({
+            "ok": False,
+            "message": errors[0] if errors else "Please review the highlighted profile fields.",
+        }, status=400)
     return render(request, "students/profile.html", {"form": form, "profile": profile, "has_saved_profile": profile.is_complete})
 
 

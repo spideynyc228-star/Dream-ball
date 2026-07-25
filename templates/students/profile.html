@@ -50,6 +50,7 @@
           <label class="agreement">{{ field }}<span>I agree to the <a href="{% url 'safety:index' %}" target="_blank" rel="noopener">site policy and community rules</a>, privacy expectations and respectful event conduct.</span>{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</label>
         {% endif %}
       {% endfor %}
+      <p class="form-submit-state" data-profile-submit-state aria-live="polite"></p>
       <button class="button button-primary" type="submit">{% if has_saved_profile %}Save changes and resubmit{% else %}Submit for moderation{% endif %} <span>→</span></button>
     </form>
   </section>

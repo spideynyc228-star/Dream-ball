@@ -303,12 +303,14 @@ document.addEventListener("DOMContentLoaded", () => {
       // FormData so the user does not have to choose the image again.
       event.preventDefault();
       const submitButton = form.querySelector('[type="submit"]');
+      const submitState = form.querySelector("[data-profile-submit-state]");
       const originalLabel = submitButton?.innerHTML;
       const payload = new FormData(form);
       if (submitButton) {
         submitButton.disabled = true;
         submitButton.textContent = "Saving…";
       }
+      if (submitState) submitState.textContent = "Saving your profile…";
       try {
         const sendProfile = () => fetch(form.action || window.location.href, {
           method: "POST",
@@ -321,6 +323,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const data = await response.json();
           if (!response.ok || !data.ok) throw new Error(data.message || "Your profile could not be saved.");
           sessionStorage.removeItem(storageKey);
+          if (submitState) submitState.textContent = "Saved — sending it for review…";
           window.location.assign(data.redirect || "/dashboard/");
           return;
         }
@@ -337,6 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
             if (!response.ok || !data.ok) throw new Error(data.message || "Your profile could not be saved.");
             sessionStorage.removeItem(storageKey);
+            if (submitState) submitState.textContent = "Saved — sending it for review…";
             window.location.assign(data.redirect || "/dashboard/");
             return;
           }
@@ -349,12 +353,13 @@ document.addEventListener("DOMContentLoaded", () => {
         document.open();
         document.write(await response.text());
         document.close();
-      } catch (_error) {
+      } catch (error) {
         const message = document.createElement("p");
         message.className = "error-text form-save-error";
-        message.textContent = "Your profile could not be saved. Please try again — your selected photo is still here.";
+        message.textContent = error.message || "Your profile could not be saved. Please try again — your selected photo is still here.";
         form.querySelector(".form-save-error")?.remove();
         submitButton?.before(message);
+        if (submitState) submitState.textContent = "";
         if (submitButton) {
           submitButton.disabled = false;
           submitButton.innerHTML = originalLabel;

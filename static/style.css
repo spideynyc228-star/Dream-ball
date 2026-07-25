@@ -90,6 +90,7 @@ code { padding: .18rem .38rem; border-radius: 5px; background: #edf0f5; color: #
 .spark-mark { margin-bottom: 8px; color: var(--gold); font-size: 29px; }
 .auth-card h1, .status-card h1, .profile-form-card h1 { margin: 9px 0 15px; font: 500 43px/1.03 "Playfair Display", Georgia, serif; letter-spacing: -.035em; }
 .stack-form { display: grid; gap: 15px; margin-top: 28px; text-align: left; }
+.form-submit-state { min-height: 18px; margin: 0; color: #58738b; font-size: 12px; font-weight: 700; }
 .stack-form label, .inline-form label, .code-create-form label, .report-panel label { display: grid; gap: 7px; color: #3a4661; font-size: 12px; font-weight: 700; }
 input, textarea, select { width: 100%; min-height: 44px; padding: 11px 12px; border: 1px solid #d7dce7; border-radius: 8px; background: #fcfcfd; color: var(--ink); transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease; }
 textarea { min-height: 100px; resize: vertical; line-height: 1.5; }
