@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Dream Ball · A beautiful beginning, safely planned{% endblock %}
+{% block body_class %}landing-page{% endblock %}
+{% block header %}
+<header class="landing-header" id="top">
+  <a class="brand" href="#top"><span>✦</span> DREAM BALL</a>
+  <nav class="landing-nav" aria-label="Landing navigation">
+    <a href="#how-it-works">How it works</a><a href="#event">The event</a><a href="#safety">Safety</a><a href="#faq">FAQ</a>
+  </nav>
+  <a class="header-action" href="{% url 'accounts:register' %}">Enter invitation code <span>→</span></a>
+</header>
+{% endblock %}
+{% block content %}
+<main class="dream-landing">
+  <div class="aurora aurora-one" aria-hidden="true"></div><div class="aurora aurora-two" aria-hidden="true"></div><div class="starfield" aria-hidden="true"></div>
+  <section class="hero-premium section-wrap">
+    <div class="hero-copy-block">
+      <p class="eyebrow warm">OFFICIAL SCHOOL EVENT · INVITATION ONLY</p>
+      <h1>Make the evening<br><em>yours to remember.</em></h1>
+      <p class="lead">Dream Ball gives every invited student a thoughtful, moderated way to find a dance partner and prepare for an extraordinary school event.</p>
+      <div class="hero-actions"><a class="button button-gold button-large" href="{% url 'accounts:register' %}">Enter invitation code <span>→</span></a><a class="quiet-link" href="#about">Discover Dream Ball <span>↓</span></a></div>
+      <p class="trust-line">✦ Built for school communities · Profiles reviewed by staff</p>
+    </div>
+    <div class="ballroom-scene" aria-label="An elegant abstract ballroom illustration">
+      <div class="ballroom-light light-one"></div><div class="ballroom-light light-two"></div><div class="moon-orb"></div><div class="ballroom-arch arch-left"></div><div class="ballroom-arch arch-right"></div><div class="floor-glow"></div>
+      <div class="event-ribbon"><span>2026 SCHOOL PROM</span><b>One unforgettable night</b></div>
+    </div>
+  </section>
+
+  <section class="story-section section-wrap" id="about">
+    <div class="story-art"><div class="portrait-card portrait-a"><span>✦</span><b>Respect</b></div><div class="portrait-card portrait-b"><span>✦</span><b>Belonging</b></div><div class="connection-line"></div></div>
+    <div class="section-copy"><p class="eyebrow warm">WHY DREAM BALL EXISTS</p><h2>A beautiful event begins with a community that feels safe.</h2><p>Big school celebrations should be easy to look forward to. Dream Ball brings invitations, profiles, partnership requests and preparation into one calm, school-supported space.</p><p>Every participant joins through a personal invitation. Every profile is reviewed. The result is less uncertainty, more confidence and a clearer path to celebrating together.</p></div>
+  </section>
+
+  <section class="benefits-section section-wrap"><div class="center-intro"><p class="eyebrow warm">DESIGNED WITH CARE</p><h2>Everything needed to prepare,<br>without the noise.</h2></div><div class="benefit-grid">
+    <article><span class="benefit-icon">✦</span><h3>Invitation only</h3><p>Only students personally invited by their school can create an account.</p></article>
+    <article><span class="benefit-icon">✓</span><h3>Moderated profiles</h3><p>Staff review each profile before it appears in the student directory.</p></article>
+    <article><span class="benefit-icon">◌</span><h3>Teacher oversight</h3><p>School teams can support the community while respecting student privacy.</p></article>
+    <article><span class="benefit-icon">↗</span><h3>Safe communication</h3><p>Clear partnership requests replace public messaging and pressure.</p></article>
+    <article><span class="benefit-icon">⌾</span><h3>Privacy first</h3><p>Thoughtful sharing controls keep event planning appropriate and focused.</p></article>
+    <article><span class="benefit-icon">♡</span><h3>Student friendly</h3><p>A gentle, easy-to-use experience built around the event—not dating.</p></article>
+  </div></section>
+
+  <section class="how-section section-wrap" id="how-it-works"><div class="section-copy"><p class="eyebrow warm">A SIMPLE PATH TO THE DANCE FLOOR</p><h2>From invitation to a shared moment.</h2><p>Every step is deliberate, transparent and supported by your school community.</p></div><ol class="journey-list"><li><i>01</i><span>Receive your invitation</span></li><li><i>02</i><span>Create your profile</span></li><li><i>03</i><span>Profile approval</span></li><li><i>04</i><span>Browse students</span></li><li><i>05</i><span>Send a partnership request</span></li><li><i>06</i><span>Plan and prepare together</span></li></ol></section>
+
+  <section class="event-showcase section-wrap" id="event"><div class="event-visual"><div class="calendar-card"><span>JUNE</span><b>27</b><small>Saturday · 18:00</small></div><div class="spark spark-a">✦</div><div class="spark spark-b">✦</div></div><div class="event-content"><p class="eyebrow warm">THE MAIN EVENT</p><h2>{% if event %}{{ event.title }}{% else %}Dream Ball 2026{% endif %}</h2><p class="event-theme">{% if event and event.theme %}{{ event.theme }}{% else %}A night beneath the stars{% endif %}</p><div class="event-details"><div><small>WHEN</small><b>{% if event %}{{ event.date|date:"F j, Y" }}{% else %}June 27, 2026{% endif %}</b></div><div><small>WHERE</small><b>{% if event %}{{ event.location }}{% else %}The Grand Hall{% endif %}</b></div><div><small>DRESS CODE</small><b>{% if event and event.dress_code %}{{ event.dress_code }}{% else %}Formal · your own expression{% endif %}</b></div></div><a class="text-arrow" href="{% if user.is_authenticated %}{% url 'dashboard:event' %}{% else %}#program{% endif %}">Explore the event <span>→</span></a></div></section>
+
+  <section class="timeline-section section-wrap"><p class="eyebrow warm">YOUR EVENT TIMELINE</p><div class="timeline-rail"><article><span>NOW</span><h3>Registration</h3><p>Confirm your invitation and create your profile.</p></article><article><span>NEXT</span><h3>Profile approval</h3><p>Staff confirm every student profile.</p></article><article><span>THEN</span><h3>Partnerships</h3><p>Explore, invite and prepare with confidence.</p></article><article><span>JUNE 27</span><h3>Dream Ball</h3><p>Step into a night created for your class.</p></article></div></section>
+
+  <section class="gallery-section section-wrap"><div class="center-intro"><p class="eyebrow warm">A GLIMPSE OF THE EVENING</p><h2>Light, music, and the people<br>who make it memorable.</h2></div><div class="gallery-grid"><div class="gallery-tile tile-1"><span>Ballroom glow</span></div><div class="gallery-tile tile-2"><span>After the ceremony</span></div><div class="gallery-tile tile-3"><span>The photo moment</span></div><div class="gallery-tile tile-4"><span>Dance floor</span></div><div class="gallery-tile tile-5"><span>One school, together</span></div></div></section>
+
+  <section class="program-section section-wrap" id="program"><div class="section-copy"><p class="eyebrow warm">THE PROGRAM</p><h2>An evening with room to celebrate.</h2><p>A balanced programme helps everyone settle in, connect and enjoy the moment.</p></div><div class="program-list"><div><span>18:00</span><b>Opening Ceremony</b></div><div><span>18:30</span><b>Celebration Dinner</b></div><div><span>20:00</span><b>Dance &amp; Music</b></div><div><span>22:00</span><b>Class Awards</b></div><div><span>22:45</span><b>Closing Ceremony</b></div></div></section>
+
+  <section class="venue-section section-wrap"><div class="venue-map"><div class="map-pin">✦</div><span>THE GRAND HALL</span></div><div class="section-copy"><p class="eyebrow warm">THE VENUE</p><h2>Made for a night worth dressing up for.</h2><p>The Grand Hall is prepared with accessible parking, a dedicated photo zone and a staffed welcome area for students and families.</p><dl class="venue-details"><div><dt>ADDRESS</dt><dd>18 Academy Lane, City Centre</dd></div><div><dt>ARRIVAL</dt><dd>Parking and drop-off from 17:30</dd></div></dl></div></section>
+
+  <section class="safety-section section-wrap" id="safety"><div class="safety-card"><div><p class="eyebrow warm">SAFETY IS PART OF THE CELEBRATION</p><h2>Thoughtful tools. Clear boundaries. Real support.</h2><p>Dream Ball is an official school platform, designed with privacy and student wellbeing at its core.</p></div><ul><li>Personal, one-time invitation codes</li><li>Staff-reviewed student profiles</li><li>Report tools and community rules</li><li>Teacher visibility of confirmed partnerships</li><li>Safe rehearsal planning</li></ul><a class="button button-soft" href="{% url 'safety:index' %}">Read the safety guide <span>→</span></a></div></section>
+
+  <section class="digital-safety section-wrap"><div class="digital-orb">♡</div><div class="section-copy"><p class="eyebrow warm">DIGITAL WELLBEING</p><h2>Respect looks good on everyone.</h2><p>Keep communication kind, meet in familiar school-approved settings, protect private information, and let a teacher know if something feels uncomfortable. We are all responsible for the community we create.</p><a class="text-arrow" href="{% url 'safety:checklist' %}">Download safety checklist <span>↓</span></a></div></section>
+
+  <section class="blog-preview section-wrap"><div class="section-heading-row"><div><p class="eyebrow warm">STUDENT JOURNAL</p><h2>Prepare with confidence.</h2></div><a class="text-arrow" href="{% url 'blog:index' %}">View all articles <span>→</span></a></div><div class="article-grid"><article><span>CONFIDENCE</span><h3>How to feel at ease before the big event</h3><a href="{% url 'blog:index' %}">Read more →</a></article><article><span>STYLE</span><h3>Finding a look that feels like you</h3><a href="{% url 'blog:index' %}">Read more →</a></article><article><span>ETIQUETTE</span><h3>A thoughtful guide to partnership requests</h3><a href="{% url 'blog:index' %}">Read more →</a></article><article><span>PLANNING</span><h3>Small steps for a calm event day</h3><a href="{% url 'blog:index' %}">Read more →</a></article><article><span>COMMUNITY</span><h3>Making every classmate feel welcome</h3><a href="{% url 'blog:index' %}">Read more →</a></article></div></section>
+
+  <section class="faq-section section-wrap" id="faq"><div class="section-copy"><p class="eyebrow warm">QUESTIONS, ANSWERED</p><h2>Everything you need to know.</h2></div><div class="faq-list"><details open><summary>Is Dream Ball a dating app?<span>+</span></summary><p>No. Dream Ball is an official school-event coordination platform. It helps invited students explore dance partnerships in a moderated, respectful environment.</p></details><details><summary>Who can join?<span>+</span></summary><p>Only students with a personal invitation code issued by their school can register.</p></details><details><summary>What happens to my profile?<span>+</span></summary><p>Your profile is reviewed by the moderation team before other approved students can see it. You can update it any time; updates return it to review.</p></details><details><summary>What if I need help?<span>+</span></summary><p>Use the report tool, speak with a trusted teacher, or review the safety guide. Support is always part of the platform.</p></details></div></section>
+
+  <section class="final-cta section-wrap"><div><p class="eyebrow warm">YOUR INVITATION AWAITS</p><h2>Ready for Dream Ball?</h2><p>Enter your one-time invitation code to begin your event journey.</p><a class="button button-gold button-large" href="{% url 'accounts:register' %}">Enter invitation code <span>→</span></a></div></section>
+</main>
+<footer class="landing-footer-full"><a class="brand" href="#top"><span>✦</span> DREAM BALL</a><p>Safe Student Event Coordination Platform</p><nav><a href="#about">About</a><a href="#safety">Safety</a><a href="#faq">FAQ</a><a href="{% url 'blog:index' %}">Blog</a><a href="{% url 'safety:index' %}">Privacy &amp; rules</a></nav><small>© 2026 Dream Ball · Created for school communities.</small></footer>
+{% endblock %}

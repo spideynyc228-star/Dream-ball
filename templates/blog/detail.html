@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block body_class %}content-page{% endblock %}
+{% block content %}
+<main class="content-shell article-shell"><a class="text-arrow" href="{% url 'blog:index' %}">← Back to journal</a><article>{% if article.cover_image_url %}<img class="article-cover" src="{{ article.cover_image_url }}" alt="Cover image for {{ article.title }}">{% endif %}<p class="eyebrow">{{ article.category }} · {{ article.reading_time }} MIN READ</p><h1>{{ article.title }}</h1><p class="article-lead">{{ article.excerpt }}</p><p class="article-byline">By {{ article.author }} · {{ article.published_at|date:"F j, Y" }}</p><div class="article-body">{{ article.body|linebreaks }}</div></article><section class="related-articles"><p class="eyebrow">KEEP READING</p><h2>Related articles</h2><div class="mini-articles">{% for item in related %}<a href="{% url 'blog:detail' item.slug %}"><span>{{ item.category }}</span><b>{{ item.title }}</b><small>{{ item.reading_time }} min read</small></a>{% empty %}<div class="empty-panel">More preparation guides are on the way.</div>{% endfor %}</div></section></main>
+{% endblock %}
