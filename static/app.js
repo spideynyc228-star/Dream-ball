@@ -58,8 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // The landing header sits outside .dream-landing, so bind to every anchor link.
-  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+  // Center headings only for public landing navigation; app tabs use their own targets.
+  document.querySelectorAll('.landing-header a[href^="#"], .landing-footer-full a[href^="#"], .hero-actions a[href^="#"]').forEach((link) => {
     link.addEventListener("click", (event) => {
       const target = document.querySelector(link.getAttribute("href"));
       const heading = target?.querySelector("h2");
