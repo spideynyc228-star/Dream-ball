@@ -3,6 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView, LogoutView
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .forms import InviteRegistrationForm
 
@@ -25,4 +26,7 @@ class UserLoginView(LoginView):
     def get_success_url(self):
         if self.request.user.role != "student":
             return "/moderation/"
+        profile = getattr(self.request.user, "profile", None)
+        if profile and profile.status == "approved":
+            return reverse("students:browse")
         return super().get_success_url()

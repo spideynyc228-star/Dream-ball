@@ -18,6 +18,8 @@ def dashboard(request):
     if request.user.role != "student":
         return redirect("moderation:dashboard")
     profile = getattr(request.user, "profile", None)
+    if profile and profile.status == Profile.Status.APPROVED:
+        return redirect("students:browse")
     if profile:
         return render(request, "dashboard/pending_activity.html", {
             "profile": profile,

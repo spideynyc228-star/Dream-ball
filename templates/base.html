@@ -13,10 +13,10 @@
   {% block header %}
     {% if user.is_authenticated %}
       <header class="site-header">
-        <a class="brand" href="{% if user.role == 'student' %}{% url 'dashboard:home' %}{% else %}{% url 'moderation:dashboard' %}{% endif %}"><span>✦</span> DREAM BALL</a>
+        <a class="brand" href="{% if user.role == 'student' %}{% if user.profile.status == 'approved' %}{% url 'students:browse' %}{% else %}{% url 'dashboard:home' %}{% endif %}{% else %}{% url 'moderation:dashboard' %}{% endif %}"><span>✦</span> DREAM BALL</a>
         {% if user.role == 'student' %}
           <nav aria-label="Primary navigation">
-            <a href="{% url 'dashboard:home' %}">{% if user.profile.status == 'approved' %}Dashboard{% else %}School life{% endif %}</a>{% if user.profile.status == 'approved' %}<a href="{% url 'students:browse' %}">Students</a><a href="{% url 'students:requests' %}">Requests</a><a href="{% url 'students:partnership' %}">Partnership</a><a href="{% url 'dashboard:event' %}">Event</a>{% endif %}
+            {% if user.profile.status == 'approved' %}<a href="{% url 'students:browse' %}">Students</a><a href="{% url 'students:requests' %}">Requests</a><a href="{% url 'students:partnership' %}">Partnership</a><a href="{% url 'dashboard:event' %}">Event</a>{% else %}<a href="{% url 'dashboard:home' %}">School life</a>{% endif %}
           </nav>
         {% else %}
           <nav aria-label="Staff navigation"><a href="{% url 'moderation:dashboard' %}">Operations console</a></nav>
