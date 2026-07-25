@@ -10,19 +10,22 @@ from notifications.models import Notification
 def approved_required(view):
     def wrapped(request,*args,**kwargs):
         if not hasattr(request.user,"profile") or request.user.profile.status != Profile.Status.APPROVED:
-            return redirect("students:profile")
+            return redirect("dashboard:home")
         return view(request,*args,**kwargs)
     return login_required(wrapped)
 
 @login_required
 def profile(request):
+    existing_profile = getattr(request.user, "profile", None)
     if request.user.role != "student":
         return redirect("moderation:dashboard")
+    if existing_profile and existing_profile.status == Profile.Status.PENDING:
+        return redirect("dashboard:home")
     profile, _=Profile.objects.get_or_create(user=request.user)
     form=ProfileForm(request.POST or None, request.FILES or None, instance=profile)
     if request.method=="POST" and form.is_valid():
         profile=form.save(commit=False); profile.status=Profile.Status.PENDING; profile.moderation_note=""; profile.save()
-        messages.success(request,"Your profile was submitted for moderation."); return redirect("students:profile")
+        messages.success(request,"Your profile was submitted for moderation."); return redirect("dashboard:home")
     return render(request,"students/profile.html",{"form":form,"profile":profile})
 
 @approved_required

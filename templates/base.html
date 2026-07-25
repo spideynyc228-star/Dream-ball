@@ -19,14 +19,14 @@
         <a class="brand" href="{% if user.role == 'student' %}{% url 'dashboard:home' %}{% else %}{% url 'moderation:dashboard' %}{% endif %}"><span>✦</span> DREAM BALL</a>
         {% if user.role == 'student' %}
           <nav aria-label="Primary navigation">
-            <a href="{% url 'dashboard:home' %}">Dashboard</a><a href="{% url 'students:browse' %}">Students</a><a href="{% url 'students:requests' %}">Requests</a><a href="{% url 'students:partnership' %}">Partnership</a><a href="{% url 'dashboard:event' %}">Event</a>
+            <a href="{% url 'dashboard:home' %}">{% if user.profile.status == 'approved' %}Dashboard{% else %}My activity{% endif %}</a>{% if user.profile.status == 'approved' %}<a href="{% url 'students:browse' %}">Students</a><a href="{% url 'students:requests' %}">Requests</a><a href="{% url 'students:partnership' %}">Partnership</a><a href="{% url 'dashboard:event' %}">Event</a>{% endif %}
           </nav>
         {% else %}
           <nav aria-label="Staff navigation"><a href="{% url 'moderation:dashboard' %}">Operations console</a></nav>
         {% endif %}
         <div class="account-menu">
           {% if user.role == 'student' %}<a class="notification-button" href="{% url 'dashboard:notifications' %}" aria-label="View notifications{% if unread_notification_count %}, {{ unread_notification_count }} unread{% endif %}"><span class="notification-icon" aria-hidden="true">&#128276;</span><span class="notification-label">Updates</span>{% if unread_notification_count %}<b>{{ unread_notification_count }}</b>{% endif %}</a>{% endif %}
-          {% if user.role == 'student' %}<a class="avatar avatar-small" href="{% url 'students:profile' %}" aria-label="Edit your profile">{{ user.first_name|first }}{{ user.last_name|first }}</a>{% endif %}
+          {% if user.role == 'student' and user.profile.status == 'approved' %}<a class="avatar avatar-small" href="{% url 'students:profile' %}" aria-label="Edit your profile">{{ user.first_name|first }}{{ user.last_name|first }}</a>{% endif %}
           <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="text-action" type="submit">Log out</button></form>
         </div>
       </header>

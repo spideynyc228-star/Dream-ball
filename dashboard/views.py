@@ -4,7 +4,7 @@ from django.utils import timezone
 from events.models import Event
 from blog.models import Article
 from notifications.models import Notification
-from students.models import Partnership
+from students.models import Partnership, Profile
 
 
 def home(request):
@@ -16,6 +16,12 @@ def home(request):
 def dashboard(request):
     if request.user.role != "student":
         return redirect("moderation:dashboard")
+    profile = getattr(request.user, "profile", None)
+    if profile and profile.status == Profile.Status.PENDING:
+        return render(request, "dashboard/pending_activity.html", {
+            "profile": profile,
+            "notifications": request.user.notifications.order_by("-created_at")[:5],
+        })
     event = Event.objects.filter(is_active=True).first()
     partnership = Partnership.objects.filter(student_one=request.user).select_related("student_two").first()
     if not partnership:
@@ -26,7 +32,7 @@ def dashboard(request):
         "partnership": partnership,
         "partner": partner,
         "notifications": request.user.notifications.order_by("-created_at")[:5],
-        "profile": getattr(request.user, "profile", None),
+        "profile": profile,
         "articles": Article.objects.all()[:3],
     })
 
@@ -35,6 +41,9 @@ def dashboard(request):
 def event_detail(request):
     if request.user.role != "student":
         return redirect("moderation:dashboard")
+    profile = getattr(request.user, "profile", None)
+    if not profile or profile.status != Profile.Status.APPROVED:
+        return redirect("dashboard:home")
     event = Event.objects.filter(is_active=True).prefetch_related("announcements").first()
     program_items = []
     if event and event.program:

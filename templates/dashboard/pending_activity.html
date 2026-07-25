@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block body_class %}app-page{% endblock %}
+{% block content %}
+<main class="app-shell activity-shell">
+  <section class="activity-hero">
+    <div><p class="eyebrow">MY ACTIVITY</p><h1>Your profile is being reviewed.</h1><p>Thanks, {{ user.first_name|default:user.username }}. The school team is checking your information before it becomes visible to other students.</p></div>
+    <div class="review-state"><span>●</span><b>In review</b><small>Submitted {{ profile.updated_at|date:"M j, Y" }}</small></div>
+  </section>
+  <div class="activity-grid">
+    <section class="activity-card review-journey"><p class="eyebrow">REVIEW PROGRESS</p><ol><li class="complete"><span>✓</span><div><b>Profile submitted</b><small>Your details were sent securely.</small></div></li><li class="current"><span>2</span><div><b>Staff review</b><small>We check every profile for a respectful community.</small></div></li><li><span>3</span><div><b>Directory access</b><small>Available after approval.</small></div></li></ol></section>
+    <section class="activity-card profile-summary"><div class="section-heading-row"><div><p class="eyebrow">YOUR INFORMATION</p><h2>Submitted profile</h2></div><span class="status status-pending">In review</span></div><dl><div><dt>Grade</dt><dd>{{ profile.grade }}{{ profile.class_letter }}</dd></div><div><dt>Dance experience</dt><dd>{{ profile.dance_experience }}</dd></div><div><dt>Preparation time</dt><dd>{{ profile.preferred_rehearsal_time }}</dd></div><div><dt>Style</dt><dd>{{ profile.personality }}</dd></div></dl><p>{{ profile.bio }}</p></section>
+  </div>
+  <section class="activity-card activity-updates"><div class="section-heading-row"><div><p class="eyebrow">UPDATES</p><h2>Your activity</h2></div></div>{% if notifications %}<div class="notification-list">{% for item in notifications %}<div class="{% if not item.is_read %}unread-notification{% endif %}"><span>✦</span><p>{{ item.message }}<small>{{ item.created_at|timesince }} ago</small></p></div>{% endfor %}</div>{% else %}<div class="empty-panel">We will add an update here as soon as the review is complete.</div>{% endif %}</section>
+  <p class="activity-note">While your profile is being reviewed, partnership search and event planning are kept private. We will notify you as soon as access is ready.</p>
+</main>
+{% endblock %}
