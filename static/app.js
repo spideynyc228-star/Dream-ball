@@ -273,7 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  const invitationList = document.querySelector(".admin-page .invitation-list");
+  const availableInvitationList = document.querySelector('.admin-page [data-code-list="available"]');
   const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
   const showAdminNotice = (message, isError = false) => {
     const stack = document.querySelector(".flash-stack") || document.body.appendChild(Object.assign(document.createElement("div"), { className: "flash-stack", ariaLive: "polite" }));
@@ -287,7 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const safeCode = escapeHtml(invitation.code);
     const safeRole = escapeHtml(invitation.role);
     const record = document.createElement("article");
-    record.className = "invitation-record";
+    record.className = "invitation-record code-available";
     record.innerHTML = `<form class="code-edit-form" method="post" action="${escapeHtml(invitation.update_url)}"><input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(csrfToken)}"><label>Invitation code<input name="code" value="${safeCode}" maxlength="32" required></label><label>Role<select name="role"><option value="user" ${safeRole === "user" ? "selected" : ""}>User</option><option value="admin" ${safeRole === "admin" ? "selected" : ""}>Administrator</option></select></label><div class="code-assignment"><span>Available</span><b>Not used yet</b></div><button class="button button-secondary" type="submit">Save</button></form><form method="post" action="${escapeHtml(invitation.delete_url)}" data-confirm="Delete invitation code ${safeCode}?"> <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(csrfToken)}"><button class="text-action delete-code" type="submit">Delete</button></form>`;
     return record;
   };
@@ -304,7 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!response.ok || !data.ok) throw new Error(data.message || "Could not save this change.");
       if (form.classList.contains("code-create-form")) {
         const csrfToken = form.querySelector('[name="csrfmiddlewaretoken"]')?.value || "";
-        invitationList?.prepend(createInvitationCard(data.invitation, csrfToken));
+        availableInvitationList?.prepend(createInvitationCard(data.invitation, csrfToken));
         form.reset();
       } else if (form.closest(".invitation-record") && !form.classList.contains("code-edit-form")) {
         form.closest(".invitation-record").remove();

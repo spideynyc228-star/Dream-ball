@@ -27,12 +27,16 @@ def dashboard(request):
         profiles = profiles.filter(Q(user__first_name__icontains=search) | Q(user__last_name__icontains=search) | Q(user__username__icontains=search))
     reports = Report.objects.select_related("profile__user", "reporter").order_by("-created_at")
     codes = InvitationCode.objects.select_related("used_by").order_by("-created_at")
+    available_codes = codes.filter(is_active=True, used_by__isnull=True)
+    used_codes = codes.exclude(is_active=True, used_by__isnull=True)
     return render(request,"moderation/dashboard.html",{
         "profiles": profiles.order_by(sort), "selected_status": status, "student_search": search,
         "pending":Profile.objects.filter(status="pending").count(),
         "reports": reports,
         "approved_count":Profile.objects.filter(status="approved").count(),
-        "codes_count":InvitationCode.objects.filter(is_active=True, used_by__isnull=True).count(), "codes":codes[:30],
+        "codes_count": available_codes.count(),
+        "available_codes": available_codes[:30],
+        "used_codes": used_codes[:30],
         "partnerships":Partnership.objects.select_related("student_one", "student_two").order_by("-created_at")[:8],
         "events":Event.objects.order_by("date")[:4],
     })

@@ -1,0 +1,16 @@
+<article class="invitation-record {% if code.is_active and not code.used_by %}code-available{% else %}code-used{% endif %}">
+  <form class="code-edit-form" method="post" action="{% url 'moderation:update_invitation' code.id %}">
+    {% csrf_token %}
+    <label>Invitation code<input name="code" value="{{ code.code }}" maxlength="32" required></label>
+    <label>Role<select name="role"><option value="user" {% if code.role == 'user' %}selected{% endif %}>User</option><option value="admin" {% if code.role == 'admin' %}selected{% endif %}>Administrator</option></select></label>
+    <div class="code-assignment">
+      {% if code.used_by %}<span>Assigned to</span><b>{{ code.used_by.get_full_name|default:code.used_by.username }}</b>
+      {% elif code.is_active %}<span>Available</span><b>Ready to use</b>
+      {% else %}<span>Inactive</span><b>Not available</b>{% endif %}
+    </div>
+    <button class="button button-secondary" type="submit">Save</button>
+  </form>
+  <form method="post" action="{% url 'moderation:delete_invitation' code.id %}" data-confirm="Delete invitation code {{ code.code }}?{% if code.used_by %} The user account will remain active.{% endif %}">
+    {% csrf_token %}<button class="text-action delete-code" type="submit">Delete</button>
+  </form>
+</article>

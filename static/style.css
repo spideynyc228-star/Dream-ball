@@ -481,3 +481,14 @@ html { background:#f7f9fb; } body { background:linear-gradient(135deg,#fff 0%,#f
   .code-edit-form .button { width:100%; }
   .invitation-record > form:last-child { justify-self:start; }
 }
+
+/* Separate invitation codes by their real availability. */
+.code-columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+.code-column { min-width:0; padding:13px; border:1px solid #e2e8ed; border-radius:15px; background:rgba(255,255,255,.48); }
+.code-column>header { display:flex; align-items:center; gap:9px; margin:0 2px 11px; }
+.code-column>header div { display:grid; gap:2px; }.code-column>header b { color:#35465a; font-size:13px; }.code-column>header small { color:#8491a0; font-size:10px; }
+.code-status-dot { width:9px; height:9px; border-radius:50%; background:#3d9271; box-shadow:0 0 0 5px #e9f6ef; }
+.code-column-used .code-status-dot { background:#bf6571; box-shadow:0 0 0 5px #fcecef; }
+.code-column .invitation-list { grid-template-columns:1fr; gap:8px; }
+.code-column .invitation-record { padding:10px; background:#fff; }.code-column .invitation-record.code-available { border-left:3px solid #77b99b; }.code-column .invitation-record.code-used { border-left:3px solid #d99aa2; }
+@media (max-width:980px) { .code-columns { grid-template-columns:1fr; } }
