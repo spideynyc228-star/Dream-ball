@@ -57,4 +57,18 @@ document.addEventListener("DOMContentLoaded", () => {
       if (event.key === "ArrowRight") { event.preventDefault(); move(1); }
     });
   });
+
+  document.querySelectorAll('.dream-landing a[href^="#"]').forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const target = document.querySelector(link.getAttribute("href"));
+      const heading = target?.querySelector("h2");
+      if (!target || !heading) return;
+
+      event.preventDefault();
+      const headingTop = heading.getBoundingClientRect().top + window.scrollY;
+      const destination = Math.max(0, headingTop - ((window.innerHeight - heading.offsetHeight) / 2));
+      window.scrollTo({ top: destination, behavior: "smooth" });
+      history.replaceState(null, "", link.getAttribute("href"));
+    });
+  });
 });
