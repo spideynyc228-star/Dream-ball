@@ -504,3 +504,10 @@ html { background:#f7f9fb; } body { background:linear-gradient(135deg,#fff 0%,#f
   .code-column .code-edit-form,.code-column .code-used .code-edit-form { grid-template-columns:minmax(0,1fr) minmax(92px,.42fr) 84px; }
   .code-column .code-used .code-assignment { grid-column:1 / -1; }
 }
+
+.admin-section-heading { align-items:flex-end; }
+.profile-tabs { display:flex; flex-wrap:wrap; gap:7px; }
+.profile-tabs a { display:inline-flex; align-items:center; gap:7px; padding:8px 10px; border:1px solid #dfe6eb; border-radius:10px; color:#607084; background:#f8fafb; font-size:11px; font-weight:750; }
+.profile-tabs a:hover,.profile-tabs a.active { color:#34546e; border-color:#b9ccdb; background:#edf4f8; }
+.profile-tabs b { display:grid; min-width:18px; height:18px; place-items:center; padding:0 4px; border-radius:50%; color:#fff; background:#748fa5; font-size:9px; }
+@media (max-width:680px) { .admin-section-heading { display:grid; gap:12px; align-items:start; }.profile-tabs { width:100%; }.profile-tabs a { flex:1; justify-content:space-between; } }
