@@ -46,6 +46,9 @@ def profile(request):
 
 @approved_required
 def browse(request):
+    if not request.user.profile.gender:
+        messages.info(request, "Choose your gender in profile settings before browsing dance matches.")
+        return redirect("students:profile")
     profiles = Profile.objects.filter(status=Profile.Status.APPROVED).exclude(user=request.user).select_related("user")
     opposite_gender = {
         Profile.Gender.FEMALE: Profile.Gender.MALE,
