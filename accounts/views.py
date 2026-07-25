@@ -10,9 +10,19 @@ from .forms import InviteRegistrationForm
 def register(request):
     form = InviteRegistrationForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        user = form.save(); login(request, user); messages.success(request, "Welcome to Dream Ball. Complete your profile for review."); return redirect("students:profile")
+        user = form.save(); login(request, user)
+        if user.role != "student":
+            messages.success(request, "Welcome to the Dream Ball operations console.")
+            return redirect("moderation:dashboard")
+        messages.success(request, "Welcome to Dream Ball. Complete your profile for review.")
+        return redirect("students:profile")
     return render(request, "accounts/register.html", {"form": form})
 
 class UserLoginView(LoginView):
     template_name = "accounts/login.html"
     authentication_form = AuthenticationForm
+
+    def get_success_url(self):
+        if self.request.user.role != "student":
+            return "/moderation/"
+        return super().get_success_url()

@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils import timezone
 from events.models import Event
 from blog.models import Article
@@ -14,6 +14,8 @@ def home(request):
 
 @login_required
 def dashboard(request):
+    if request.user.role != "student":
+        return redirect("moderation:dashboard")
     event = Event.objects.filter(is_active=True).first()
     partnership = Partnership.objects.filter(student_one=request.user).select_related("student_two").first()
     if not partnership:
@@ -31,6 +33,8 @@ def dashboard(request):
 
 @login_required
 def event_detail(request):
+    if request.user.role != "student":
+        return redirect("moderation:dashboard")
     event = Event.objects.filter(is_active=True).prefetch_related("announcements").first()
     program_items = []
     if event and event.program:
@@ -51,5 +55,7 @@ def event_detail(request):
 
 @login_required
 def notifications(request):
+    if request.user.role != "student":
+        return redirect("moderation:dashboard")
     request.user.notifications.filter(is_read=False).update(is_read=True)
     return render(request, "dashboard/notifications.html", {"notifications": request.user.notifications.order_by("-created_at")})
