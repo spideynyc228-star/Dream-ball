@@ -40,7 +40,11 @@ def dashboard(request):
 @moderator_required
 def review_profile(request,pk,status):
     if request.method != "POST" or status not in {Profile.Status.APPROVED, Profile.Status.REJECTED}: return redirect("moderation:dashboard")
-    profile=get_object_or_404(Profile,pk=pk); profile.status=status; profile.moderation_note=request.POST.get("note",""); profile.save()
+    profile=get_object_or_404(Profile,pk=pk)
+    if status == Profile.Status.APPROVED and not profile.is_complete:
+        messages.error(request, "This profile cannot be approved yet because required answers are missing.")
+        return redirect("moderation:dashboard")
+    profile.status=status; profile.moderation_note=request.POST.get("note",""); profile.save()
     message = "Your profile was approved. You can now browse the student directory." if status == Profile.Status.APPROVED else "Your profile needs an update before approval. Please read the moderator note."
     Notification.objects.create(user=profile.user, message=message)
     return redirect("moderation:dashboard")

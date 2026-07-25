@@ -15,6 +15,12 @@ class Profile(models.Model):
     moderation_note=models.TextField(blank=True)
     created_at=models.DateTimeField(default=timezone.now, editable=False)
     updated_at=models.DateTimeField(auto_now=True)
+
+    @property
+    def is_complete(self):
+        required = (self.grade, self.class_letter, self.height, self.bio, self.dance_experience, self.personality, self.preferred_rehearsal_time)
+        return all(required) and self.agreed_to_rules
+
     def __str__(self): return self.user.get_full_name() or self.user.username
 
 class PartnershipRequest(models.Model):

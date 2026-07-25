@@ -19,14 +19,17 @@ def profile(request):
     existing_profile = getattr(request.user, "profile", None)
     if request.user.role != "student":
         return redirect("moderation:dashboard")
-    if existing_profile and existing_profile.status == Profile.Status.PENDING:
+    if existing_profile and existing_profile.status == Profile.Status.PENDING and existing_profile.is_complete:
         return redirect("dashboard:home")
     profile, _=Profile.objects.get_or_create(user=request.user)
+    if profile.status == Profile.Status.APPROVED and not profile.is_complete:
+        profile.status = Profile.Status.PENDING
+        profile.save(update_fields=["status"])
     form=ProfileForm(request.POST or None, request.FILES or None, instance=profile)
     if request.method=="POST" and form.is_valid():
         profile=form.save(commit=False); profile.status=Profile.Status.PENDING; profile.moderation_note=""; profile.save()
         messages.success(request,"Your profile was submitted for moderation."); return redirect("dashboard:home")
-    return render(request,"students/profile.html",{"form":form,"profile":profile})
+    return render(request,"students/profile.html",{"form":form,"profile":profile,"has_saved_profile":profile.is_complete})
 
 @approved_required
 def browse(request):
