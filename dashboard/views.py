@@ -32,7 +32,21 @@ def dashboard(request):
 @login_required
 def event_detail(request):
     event = Event.objects.filter(is_active=True).prefetch_related("announcements").first()
-    return render(request, "dashboard/event.html", {"event": event})
+    program_items = []
+    if event and event.program:
+        for line in event.program.splitlines():
+            time, separator, title = line.partition(" - ")
+            if separator:
+                program_items.append({"time": time.strip(), "title": title.strip()})
+    if not program_items:
+        program_items = [
+            {"time": "18:00", "title": "Opening ceremony"},
+            {"time": "18:30", "title": "Celebration dinner"},
+            {"time": "20:00", "title": "Dance & music"},
+            {"time": "22:00", "title": "Class awards"},
+            {"time": "22:45", "title": "Closing ceremony"},
+        ]
+    return render(request, "dashboard/event.html", {"event": event, "program_items": program_items})
 
 
 @login_required

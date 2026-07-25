@@ -42,4 +42,19 @@ document.addEventListener("DOMContentLoaded", () => {
       window.setTimeout(() => flash.remove(), 220);
     }, 4500);
   });
+
+  document.querySelectorAll("[data-event-carousel]").forEach((carousel) => {
+    const panel = carousel.closest(".timeline-panel");
+    const previous = panel?.querySelector("[data-carousel-prev]");
+    const next = panel?.querySelector("[data-carousel-next]");
+    const step = () => Math.min(carousel.clientWidth * 0.84, 360);
+    const move = (direction) => carousel.scrollBy({ left: step() * direction, behavior: "smooth" });
+
+    previous?.addEventListener("click", () => move(-1));
+    next?.addEventListener("click", () => move(1));
+    carousel.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") { event.preventDefault(); move(-1); }
+      if (event.key === "ArrowRight") { event.preventDefault(); move(1); }
+    });
+  });
 });

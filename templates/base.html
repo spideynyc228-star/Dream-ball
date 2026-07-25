@@ -25,7 +25,7 @@
           <nav aria-label="Staff navigation"><a href="{% url 'moderation:dashboard' %}">Moderation</a><a href="{% url 'dashboard:event' %}">Event</a></nav>
         {% endif %}
         <div class="account-menu">
-          <a class="notification-dot" href="{% url 'dashboard:notifications' %}" aria-label="View notifications">●</a>
+          <a class="notification-button" href="{% url 'dashboard:notifications' %}" aria-label="View notifications{% if unread_notification_count %}, {{ unread_notification_count }} unread{% endif %}"><span class="notification-icon" aria-hidden="true">&#128276;</span><span class="notification-label">Updates</span>{% if unread_notification_count %}<b>{{ unread_notification_count }}</b>{% endif %}</a>
           {% if user.role == 'student' %}<a class="avatar avatar-small" href="{% url 'students:profile' %}" aria-label="Edit your profile">{{ user.first_name|first }}{{ user.last_name|first }}</a>{% endif %}
           <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="text-action" type="submit">Log out</button></form>
         </div>
