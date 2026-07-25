@@ -199,4 +199,48 @@ document.addEventListener("DOMContentLoaded", () => {
       sessionStorage.setItem(storageKey, JSON.stringify({ savedAt: Date.now(), values }));
     });
   });
+
+  const invitationList = document.querySelector(".admin-page .invitation-list");
+  const escapeHtml = (value) => String(value).replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
+  const showAdminNotice = (message, isError = false) => {
+    const stack = document.querySelector(".flash-stack") || document.body.appendChild(Object.assign(document.createElement("div"), { className: "flash-stack", ariaLive: "polite" }));
+    const notice = document.createElement("div");
+    notice.className = `flash flash-${isError ? "error" : "success"}`;
+    notice.innerHTML = `<span>✦</span>${escapeHtml(message)}`;
+    stack.appendChild(notice);
+    window.setTimeout(() => notice.remove(), 3600);
+  };
+  const createInvitationCard = (invitation, csrfToken) => {
+    const safeCode = escapeHtml(invitation.code);
+    const safeRole = escapeHtml(invitation.role);
+    const record = document.createElement("article");
+    record.className = "invitation-record";
+    record.innerHTML = `<form class="code-edit-form" method="post" action="${escapeHtml(invitation.update_url)}"><input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(csrfToken)}"><label>Invitation code<input name="code" value="${safeCode}" maxlength="32" required></label><label>Role<select name="role"><option value="user" ${safeRole === "user" ? "selected" : ""}>User</option><option value="admin" ${safeRole === "admin" ? "selected" : ""}>Administrator</option></select></label><div class="code-assignment"><span>Available</span><b>Not used yet</b></div><button class="button button-secondary" type="submit">Save</button></form><form method="post" action="${escapeHtml(invitation.delete_url)}" data-confirm="Delete invitation code ${safeCode}?"> <input type="hidden" name="csrfmiddlewaretoken" value="${escapeHtml(csrfToken)}"><button class="text-action delete-code" type="submit">Delete</button></form>`;
+    return record;
+  };
+  document.addEventListener("submit", async (event) => {
+    const form = event.target;
+    if (!form.matches(".admin-page .code-create-form, .admin-page .code-edit-form, .admin-page .invitation-record > form")) return;
+    if (event.defaultPrevented) return;
+    event.preventDefault();
+    const button = form.querySelector('[type="submit"]');
+    if (button) button.disabled = true;
+    try {
+      const response = await fetch(form.action, { method: "POST", body: new FormData(form), headers: { "X-Requested-With": "XMLHttpRequest" } });
+      const data = await response.json();
+      if (!response.ok || !data.ok) throw new Error(data.message || "Could not save this change.");
+      if (form.classList.contains("code-create-form")) {
+        const csrfToken = form.querySelector('[name="csrfmiddlewaretoken"]')?.value || "";
+        invitationList?.prepend(createInvitationCard(data.invitation, csrfToken));
+        form.reset();
+      } else if (form.closest(".invitation-record") && !form.classList.contains("code-edit-form")) {
+        form.closest(".invitation-record").remove();
+      }
+      showAdminNotice(data.message);
+    } catch (error) {
+      showAdminNotice(error.message || "Could not save this change.", true);
+    } finally {
+      if (button) button.disabled = false;
+    }
+  });
 });

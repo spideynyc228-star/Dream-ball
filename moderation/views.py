@@ -3,6 +3,7 @@ import secrets
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from students.models import Profile, Partnership
@@ -71,6 +72,7 @@ def delete_profile(request, pk):
 
 @admin_required
 def create_invitation(request):
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method == "POST":
         code = request.POST.get("code", "").strip().upper() or secrets.token_urlsafe(7).upper()
         role = request.POST.get("role", "user")
@@ -79,13 +81,18 @@ def create_invitation(request):
         if InvitationCode.objects.filter(code=code).exists():
             messages.error(request, "That invitation code already exists.")
         else:
-            InvitationCode.objects.create(code=code, role=role)
+            invitation = InvitationCode.objects.create(code=code, role=role)
+            if is_async:
+                return JsonResponse({"ok": True, "message": f"Invitation code {code} is ready to share.", "invitation": {"id": invitation.pk, "code": invitation.code, "role": invitation.role, "update_url": reverse("moderation:update_invitation", args=[invitation.pk]), "delete_url": reverse("moderation:delete_invitation", args=[invitation.pk])}})
             messages.success(request, f"Invitation code {code} is ready to share.")
+        if is_async:
+            return JsonResponse({"ok": False, "message": "That invitation code already exists."}, status=400)
     return redirect(f"{reverse('moderation:dashboard')}#codes")
 
 
 @admin_required
 def update_invitation(request, pk):
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method == "POST":
         invitation = get_object_or_404(InvitationCode, pk=pk)
         code = request.POST.get("code", "").strip().upper()
@@ -100,14 +107,21 @@ def update_invitation(request, pk):
             invitation.code = code
             invitation.role = role
             invitation.save(update_fields=["code", "role"])
+            if is_async:
+                return JsonResponse({"ok": True, "message": "Invitation code updated."})
             messages.success(request, "Invitation code updated.")
+        if is_async:
+            return JsonResponse({"ok": False, "message": "Check the invitation code and role, then try again."}, status=400)
     return redirect(f"{reverse('moderation:dashboard')}#codes")
 
 
 @admin_required
 def delete_invitation(request, pk):
+    is_async = request.headers.get("x-requested-with") == "XMLHttpRequest"
     if request.method == "POST":
         invitation = get_object_or_404(InvitationCode, pk=pk)
         invitation.delete()
+        if is_async:
+            return JsonResponse({"ok": True, "message": "Invitation code deleted. Existing accounts stay active."})
         messages.success(request, "Invitation code deleted. Existing accounts stay active.")
     return redirect(f"{reverse('moderation:dashboard')}#codes")
