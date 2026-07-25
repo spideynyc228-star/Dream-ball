@@ -24,9 +24,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     [controls.x, controls.y, controls.scale].forEach((control) => control?.addEventListener("input", updatePhotoFrame));
     let dragState = null;
+    let didDragPhoto = false;
     preview?.addEventListener("pointerdown", (event) => {
       if (preview.hidden || !controls.x || !controls.y) return;
       dragState = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+      didDragPhoto = false;
       preview.setPointerCapture(event.pointerId);
       preview.classList.add("is-dragging");
     });
@@ -35,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const bounds = preview.getBoundingClientRect();
       const moveX = ((event.clientX - dragState.x) / bounds.width) * 100;
       const moveY = ((event.clientY - dragState.y) / bounds.height) * 100;
+      if (Math.abs(moveX) > 0.3 || Math.abs(moveY) > 0.3) didDragPhoto = true;
       const scale = Math.max(1, Number(controls.scale?.value || 100) / 100);
       const clamp = (value) => Math.max(0, Math.min(100, value));
       controls.x.value = clamp(Number(controls.x.value) - (moveX / scale));
@@ -51,6 +54,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     preview?.addEventListener("pointerup", stopPhotoDrag);
     preview?.addEventListener("pointercancel", stopPhotoDrag);
+    preview?.addEventListener("click", (event) => {
+      if (!didDragPhoto) return;
+      event.preventDefault();
+      didDragPhoto = false;
+    });
     updatePhotoFrame();
     photoInput.addEventListener("change", () => {
       const file = photoInput.files?.[0];
